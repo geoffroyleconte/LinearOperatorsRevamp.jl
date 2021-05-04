@@ -9,4 +9,6 @@ include("constructors.jl")
 # Operations
 include("operations.jl") # This first
 
+include("special-operators.jl")
+
 end # module

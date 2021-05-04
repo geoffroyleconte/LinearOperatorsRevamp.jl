@@ -38,6 +38,13 @@ function test_linop()
   res_true = A1 * v 
   @test norm(res-res_true) ≤ sqrt(ϵ)
   
+  # test opEye
+  opE = opEye(Float64, nrow)
+  vec, res, res_true = ones(nrow), ones(nrow), ones(nrow)
+  mul!(res, opE, vec, α, β)
+  mul!(res_true, I, vec, α, β)
+  @test norm(res-res_true) ≤ sqrt(ϵ)
+  
 end
 
 test_linop()
