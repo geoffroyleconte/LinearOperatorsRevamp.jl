@@ -1,6 +1,3 @@
-using LinearOperatorsRevamp
-using Test
+using Test, LinearOperatorsRevamp, LinearAlgebra
 
-@testset "LinearOperatorsRevamp.jl" begin
-    # Write your tests here.
-end
+include("test_linop.jl")

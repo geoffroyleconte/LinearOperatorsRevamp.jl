@@ -1,5 +1,12 @@
 module LinearOperatorsRevamp
 
-# Write your package code here.
+using FastClosures, LinearAlgebra, Printf, SparseArrays
 
-end
+# Basic defitions
+include("abstract.jl")
+include("constructors.jl")
+
+# Operations
+include("operations.jl") # This first
+
+end # module
