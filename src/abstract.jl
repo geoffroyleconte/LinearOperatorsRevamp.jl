@@ -40,12 +40,9 @@ mutable struct LinearOperator{T} <: AbstractLinearOperator{T}
   ncol::Int
   symmetric::Bool
   hermitian::Bool
-  mul3    # apply the operator to a vector
-  tmul3   # apply the transpose operator to a vector
-  ctmul3  # apply the transpose conjugate operator to a vector
-  mul5 
-  tmul5
-  ctmul5
+  mul 
+  tmul
+  ctmul
   nprod::Int
   ntprod::Int
   nctprod::Int
@@ -56,13 +53,10 @@ LinearOperator{T}(
   ncol::Int,
   symmetric::Bool,
   hermitian::Bool,
-  mul3,    
-  tmul3,   
-  ctmul3, 
-  mul5,
-  tmul5,
-  ctmul5,
-) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, mul3, tmul3, ctmul3, mul5, tmul5, ctmul5, 0, 0, 0)
+  mul,
+  tmul,
+  ctmul,
+) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, mul, tmul, ctmul, 0, 0, 0)
 
 nprod(op::AbstractLinearOperator) = op.nprod
 ntprod(op::AbstractLinearOperator) = op.ntprod

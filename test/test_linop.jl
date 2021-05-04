@@ -1,4 +1,4 @@
-function test_linop2()
+function test_linop()
   (nrow, ncol) = (10, 6)
   ϵ = eps(Float64)
   rtol = sqrt(ϵ)
@@ -20,6 +20,7 @@ function test_linop2()
   α, β = 2.0, -3.0
   res = rand(nrow)
   res_true .= res
+  opA1 = LinearOperator(A1)
   mul!(res, opA1, v, α, β)
   mul!(res, A1, v, α, β)
   res .= res_true
@@ -27,9 +28,16 @@ function test_linop2()
   println(allocs2)
   allocs = @allocated mul!(res_true, A1, v, α, β)
   println(allocs)
+  @test allocs2 == 32 
+  @test allocs == 0
   @test norm(res-res_true) ≤ sqrt(ϵ)
 
+  # test prod 
+  opA1 = LinearOperator(A1)
+  res = opA1 * v 
+  res_true = A1 * v 
+  @test norm(res-res_true) ≤ sqrt(ϵ)
   
 end
 
-test_linop2()
+test_linop()

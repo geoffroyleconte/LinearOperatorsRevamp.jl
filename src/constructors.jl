@@ -12,13 +12,10 @@ function LinearOperator(
   hermitian = false,
 ) where {T}
   nrow, ncol = size(M)
-  mul3 = @closure (res, v) -> mul!(res, M, v)
-  tmul3 = @closure (res, u) -> mul!(res, transpose(M), u)
-  ctmul3 = @closure (res, w) -> mul!(res, adjoint(M), w)
-  mul5 = @closure (res, v, α, β) -> mul!(res, M, v, α, β)
-  tmul5 = @closure (res, u, α, β) -> mul!(res, transpose(M), u, α, β)
-  ctmul5 = @closure (res, w, α, β) -> mul!(res, adjoint(M), w, α, β)
-  LinearOperator{T}(nrow, ncol, symmetric, hermitian, mul3, tmul3, ctmul3, mul5, tmul5, ctmul5)
+  mul = @closure (res, v, α, β) -> mul!(res, M, v, α, β)
+  tmul = @closure (res, u, α, β) -> mul!(res, transpose(M), u, α, β)
+  ctmul = @closure (res, w, α, β) -> mul!(res, adjoint(M), w, α, β)
+  LinearOperator{T}(nrow, ncol, symmetric, hermitian, mul, tmul, ctmul)
 end
 
 """
