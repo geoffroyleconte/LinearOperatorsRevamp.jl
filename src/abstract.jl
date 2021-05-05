@@ -40,9 +40,9 @@ mutable struct LinearOperator{T} <: AbstractLinearOperator{T}
   ncol::Int
   symmetric::Bool
   hermitian::Bool
-  mul 
-  tmul
-  ctmul
+  prod! 
+  tprod!
+  ctprod!
   nprod::Int
   ntprod::Int
   nctprod::Int
@@ -53,10 +53,10 @@ LinearOperator{T}(
   ncol::Int,
   symmetric::Bool,
   hermitian::Bool,
-  mul,
-  tmul,
-  ctmul,
-) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, mul, tmul, ctmul, 0, 0, 0)
+  prod!,
+  tprod!,
+  ctprod!,
+) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, 0, 0, 0)
 
 nprod(op::AbstractLinearOperator) = op.nprod
 ntprod(op::AbstractLinearOperator) = op.ntprod

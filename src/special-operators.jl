@@ -43,8 +43,8 @@ end
 Identity operator of order `n` and of data type `T` (defaults to `Float64`).
 """
 function opEye(T::DataType, n::Int)
-  mul = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
-  LinearOperator{T}(n, n, true, true, mul, mul, mul)
+  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
+  LinearOperator{T}(n, n, true, true, prod!, prod!, prod!)
 end
 
 opEye(n::Int) = opEye(Float64, n)
@@ -61,8 +61,8 @@ function opEye(T::DataType, nrow::Int, ncol::Int)
   if nrow == ncol
     return opEye(T, nrow)
   end
-  mul = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
-  return LinearOperator{T}(nrow, ncol, false, false, prod, tprod, tprod)
+  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
+  return LinearOperator{T}(nrow, ncol, false, false, prod!, prod!, prod!)
 end
 
 opEye(nrow::Int, ncol::Int) = opEye(Float64, nrow, ncol)
@@ -79,8 +79,8 @@ Operator of all ones of size `nrow`-by-`ncol` and of data type `T` (defaults to
 `Float64`).
 """
 function opOnes(T::DataType, nrow::Int, ncol::Int)
-  mul = @closure (res, v, α, β) -> mulOpOnes!(res, v, α, β)
-  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, mul, mul, mul)
+  prod! = @closure (res, v, α, β) -> mulOpOnes!(res, v, α, β)
+  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!)
 end
 
 opOnes(nrow::Int, ncol::Int) = opOnes(Float64, nrow, ncol)
@@ -97,8 +97,8 @@ Zero operator of size `nrow`-by-`ncol` and of data type `T` (defaults to
 `Float64`).
 """
 function opZeros(T::DataType, nrow::Int, ncol::Int)
-  mul = @closure (res, v, α, β) -> mulOpZeros!(res, v, α, β)
-  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, mul, mul, mul)
+  prod! = @closure (res, v, α, β) -> mulOpZeros!(res, v, α, β)
+  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!)
 end
 
 opZeros(nrow::Int, ncol::Int) = opZeros(Float64, nrow, ncol)

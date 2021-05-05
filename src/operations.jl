@@ -3,13 +3,13 @@ import Base.+, Base.-, Base.*, LinearAlgebra.mul!
 function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::AbstractVector{T}, α::T, β::T) where T 
   (size(v, 1) == size(op, 2) && size(res, 1) == size(op, 1)) || throw(LinearOperatorException("shape mismatch"))
   increase_nprod(op)
-  op.mul(res, v, α, β)
+  op.prod!(res, v, α, β)
 end
 
 function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::AbstractVector{T}) where T
   (size(v, 1) == size(op, 2) && size(res, 1) == size(op, 1)) || throw(LinearOperatorException("shape mismatch"))
   increase_nprod(op)
-  op.mul(res, v, one(T), zero(T))
+  op.prod!(res, v, one(T), zero(T))
 end
 
 # Apply an operator to a vector.
