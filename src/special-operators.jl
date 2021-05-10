@@ -110,9 +110,9 @@ opZeros(nrow::Int, ncol::Int) = opZeros(Float64, nrow, ncol)
 Diagonal operator with the vector `d` on its main diagonal.
 """
 function opDiagonal(d::AbstractVector{T}) where {T}
-  prod = @closure v -> v .* d
-  ctprod = @closure w -> w .* conj(d)
-  LinearOperator{T}(length(d), length(d), true, isreal(d), prod, prod, ctprod)
+  prod! = @closure v -> v .* d
+  ctprod! = @closure w -> w .* conj(d)
+  LinearOperator{T}(length(d), length(d), true, isreal(d), prod!, prod!, ctprod!)
 end
 
 #TODO: not type stable

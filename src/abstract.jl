@@ -40,9 +40,9 @@ mutable struct LinearOperator{T, F, Ft, Fct} <: AbstractLinearOperator{T}
   ncol::Int
   symmetric::Bool
   hermitian::Bool
-  prod! :: F
-  tprod! :: Ft
-  ctprod! :: Fct
+  prod!::F
+  tprod!::Ft
+  ctprod!::Fct
   nprod::Int
   ntprod::Int
   nctprod::Int

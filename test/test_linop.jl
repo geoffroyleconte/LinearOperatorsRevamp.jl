@@ -35,6 +35,35 @@ function test_linop()
   res = opA1 * v 
   res_true = A1 * v 
   @test norm(res-res_true) ≤ sqrt(ϵ)
+
+  # test +op 
+  opA2 = +opA1
+  α, β = 2.0, -3.0
+  res = rand(nrow)
+  res_true .= res
+  mul!(res, opA2, v, α, β)
+  mul!(res_true, A1, v, α, β)
+  @test norm(res-res_true) ≤ sqrt(ϵ)
+
+  # test -op
+  opA2 = -opA1
+  α, β = 2.0, -3.0
+  res = rand(nrow)
+  res_true .= res
+  opA1 = LinearOperator(A1)
+  mul!(res, opA2, v, α, β)
+  mul!(res_true, -A1, v, α, β)
+  @test norm(res-res_true) ≤ sqrt(ϵ)
+  mul!(res, opA2, v, α, β)
+
+  # test PreallocatedLinearOperator
+  popA1 = PreallocatedLinearOperator(A1)
+  mul!(res, popA1, v, α, β) # compile 
+  popA1.Mv .= rand(nrow)
+  res_true .= popA1.Mv
+  mul!(popA1.Mv, popA1, v, α, β)
+  mul!(res_true, A1, v, α, β)
+  @test norm(popA1.Mv-res_true) ≤ sqrt(ϵ)
   
   # test opEye
   opE = opEye(Float64, nrow)
