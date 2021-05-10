@@ -25,10 +25,8 @@ function test_linop()
   mul!(res, A1, v, α, β)
   res .= res_true
   allocs2 = @allocated mul!(res, opA1, v, α, β)
-  println(allocs2)
   allocs = @allocated mul!(res_true, A1, v, α, β)
-  println(allocs)
-  @test allocs2 == 32 
+  @test allocs2 == 0
   @test allocs == 0
   @test norm(res-res_true) ≤ sqrt(ϵ)
 

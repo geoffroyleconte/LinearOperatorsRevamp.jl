@@ -35,18 +35,25 @@ to combine or otherwise alter them. They can be combined with
 other operators, with matrices and with scalars. Operators may
 be transposed and conjugate-transposed using the usual Julia syntax.
 """
-mutable struct LinearOperator{T} <: AbstractLinearOperator{T}
+mutable struct LinearOperator{T, F, Ft, Fct} <: AbstractLinearOperator{T}
   nrow::Int
   ncol::Int
   symmetric::Bool
   hermitian::Bool
-  prod! 
-  tprod!
-  ctprod!
+  prod! :: F
+  tprod! :: Ft
+  ctprod! :: Fct
   nprod::Int
   ntprod::Int
   nctprod::Int
 end
+
+
+LinearOperator{T}(nrow::Int, ncol::Int, symmetric::Bool, hermitian::Bool, 
+                  prod!::F, tprod!::Ft, ctprod!::Fct, 
+                  nprod::Int, ntprod::Int, nctprod::Int
+                  ) where {T,F,Ft,Fct} = LinearOperator{T,F,Ft,Fct}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, 
+                                                                    nprod, ntprod, nctprod)
 
 LinearOperator{T}(
   nrow::Int,
