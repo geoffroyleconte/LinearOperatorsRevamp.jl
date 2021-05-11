@@ -35,7 +35,7 @@ to combine or otherwise alter them. They can be combined with
 other operators, with matrices and with scalars. Operators may
 be transposed and conjugate-transposed using the usual Julia syntax.
 """
-mutable struct LinearOperator{T, F, Ft, Fct} <: AbstractLinearOperator{T}
+mutable struct LinearOperator{T, S, F, Ft, Fct} <: AbstractLinearOperator{T}
   nrow::Int
   ncol::Int
   symmetric::Bool
@@ -43,6 +43,9 @@ mutable struct LinearOperator{T, F, Ft, Fct} <: AbstractLinearOperator{T}
   prod!::F
   tprod!::Ft
   ctprod!::Fct
+  Mv::S # storage vector for prod!
+  Mtu::S # storage vector for tprod!
+  Maw::S # storage vector for ctprod!
   nprod::Int
   ntprod::Int
   nctprod::Int
@@ -51,9 +54,12 @@ end
 
 LinearOperator{T}(nrow::Int, ncol::Int, symmetric::Bool, hermitian::Bool, 
                   prod!::F, tprod!::Ft, ctprod!::Fct, 
+                  Mv::S, Mtu::S, Maw::S,
                   nprod::Int, ntprod::Int, nctprod::Int
-                  ) where {T,F,Ft,Fct} = LinearOperator{T,F,Ft,Fct}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, 
-                                                                    nprod, ntprod, nctprod)
+                  ) where {T,S,F,Ft,Fct} = LinearOperator{T,S,F,Ft,Fct}(nrow, ncol, symmetric, hermitian, 
+                                                                        prod!, tprod!, ctprod!,
+                                                                        Mv, Mtu, Maw, 
+                                                                        nprod, ntprod, nctprod)
 
 LinearOperator{T}(
   nrow::Int,
@@ -63,7 +69,10 @@ LinearOperator{T}(
   prod!,
   tprod!,
   ctprod!,
-) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, 0, 0, 0)
+  Mv::AbstractVector{T},
+  Mtu::AbstractVector{T},
+  Maw::AbstractVector{T}
+) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw, 0, 0, 0)
 
 nprod(op::AbstractLinearOperator) = op.nprod
 ntprod(op::AbstractLinearOperator) = op.ntprod
