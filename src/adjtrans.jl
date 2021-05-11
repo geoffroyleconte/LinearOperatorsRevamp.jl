@@ -88,9 +88,9 @@ end
 
 function mul!(res::AbstractVector{T}, op::AdjointLinearOperator{T, S}, v::AbstractVector{U}, α::T, β::T) where {T, S, U}
   p = op.parent
-  (length(v) == size(p, 1) && length(res) == size(op, 2)) || throw(LinearOperatorException("shape mismatch"))
+  (length(v) == size(p, 1) && length(res) == size(p, 2)) || throw(LinearOperatorException("shape mismatch"))
   ishermitian(p) && mul!(res, p, v, α, β) && return nothing
-  if p.ctprod !== nothing
+  if p.ctprod! !== nothing
     increase_nctprod(p)
     p.ctprod!(res, v, α, β)
     return nothing

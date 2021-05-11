@@ -77,3 +77,66 @@ end
 function *(x::Number, op::AbstractLinearOperator)
   return op * x
 end
+
+# Operator + operator.
+
+function sum_prod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                   v::AbstractVector{T}, α::T, β::T) where T
+  op1.prod!(res, v, α, β)
+  op2.prod!(res, v, α, one(T))
+end
+
+function sum_tprod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                    u::AbstractVector{T}, α::T, β::T) where T
+op1.tprod!(res, u, α, β)
+op2.tprod!(res, u, α, one(T))
+end
+
+function sum_ctprod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                     w::AbstractVector{T}, α::T, β::T) where T
+  op1.ctprod!(res, w, α, β)
+  op2.ctprod!(res, w, α, one(T))
+end
+
+function +(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
+  (m1, n1) = size(op1)
+  (m2, n2) = size(op2)
+  if (m1 != m2) || (n1 != n2)
+    throw(LinearOperatorException("shape mismatch"))
+  end
+  S = promote_type(eltype(op1), eltype(op2))
+  prod! = @closure (res, v, α, β) -> sum_prod!(res, op1, op2, v, α, β)
+  tprod! = @closure (res, u, α, β) -> sum_tprod!(res, op1, op2, u, α, β)
+  ctprod! = @closure (res, w, α, β) -> sum_ctprod!(res, op1, op2, w, α, β)
+  return LinearOperator{S}(
+    m1,
+    n1,
+    symmetric(op1) && symmetric(op2),
+    hermitian(op1) && hermitian(op2),
+    prod,
+    tprod,
+    ctprod,
+    op2.Mv,
+    op2.Mtu,
+    op2.Maw
+  )
+end
+
+# Operator + matrix.
++(M::AbstractMatrix, op::AbstractLinearOperator) = LinearOperator(M) + op
++(op::AbstractLinearOperator, M::AbstractMatrix) = op + LinearOperator(M)
+
+# # Operator .+ scalar.
+# +(op::AbstractLinearOperator, x::Number) = op + x * opOnes(op.nrow, op.ncol)
+# +(x::Number, op::AbstractLinearOperator) = x * opOnes(op.nrow, op.ncol) + op
+
+# Operator - operator
+-(op1::AbstractLinearOperator, op2::AbstractLinearOperator) = op1 + (-op2)
+
+# Operator - matrix.
+-(M::AbstractMatrix, op::AbstractLinearOperator) = LinearOperator(M) - op
+-(op::AbstractLinearOperator, M::AbstractMatrix) = op - LinearOperator(M)
+
+# # Operator - scalar.
+# -(op::AbstractLinearOperator, x::Number) = op + (-x)
+# -(x::Number, op::AbstractLinearOperator) = x + (-op)
