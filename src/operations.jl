@@ -30,15 +30,22 @@ function -(op::AbstractLinearOperator{T}) where {T}
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!)
 end
 
-function *(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
-  (m1, n1) = size(op1)
-  (m2, n2) = size(op2)
-  if m2 != n1
-    throw(LinearOperatorException("shape mismatch"))
-  end
-  S = promote_type(eltype(op1), eltype(op2))
-  prod = @closure v -> op1 * (op2 * v)
-  tprod = @closure u -> transpose(op2) * (transpose(op1) * u)
-  ctprod = @closure w -> op2' * (op1' * w)
-  LinearOperator{S}(m1, n2, false, false, prod, tprod, ctprod)
-end
+# function prod_op!(res::AbstractVector{T}, op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T}, 
+#                   v::AbstractVector{T}, α::T, β::T)
+#   op2.prod!(op2.Mv, v, one(T), zero(T))
+#   op1.prod!(res, op2.Mv, α, β)
+# end
+
+# ## Operator times operator.
+# function *(op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T})
+#   (m1, n1) = size(op1)
+#   (m2, n2) = size(op2)
+#   if m2 != n1
+#     throw(LinearOperatorException("shape mismatch"))
+#   end
+#   S = promote_type(eltype(op1), eltype(op2))
+#   prod = @closure (res, v, α, β) -> prod_op!(res, op1, op2, v, α, β)
+#   tprod = @closure u -> transpose(op2) * (transpose(op1) * u)
+#   ctprod = @closure w -> op2' * (op1' * w)
+#   LinearOperator{S}(m1, n2, false, false, prod, tprod, ctprod)
+# end
