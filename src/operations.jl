@@ -23,13 +23,13 @@ end
 +(op::AbstractLinearOperator) = op
 
 function -(op::AbstractLinearOperator{T}) where T
-  prod! = @closure (res, v, α, β) -> op.prod!(res, v, -α, β)
-  tprod! = @closure (res, u, α, β) -> op.tprod!(res, u, -α, β)
-  ctprod! = @closure (res, w, α, β) -> op.ctprod!(res, w, -α, β)
+  prod! = @closure (res, v, α, β) -> mul!(res, op, v, -α, β)
+  tprod! = @closure (res, u, α, β) -> mul!(res, transpose(op), u, -α, β)
+  ctprod! = @closure (res, w, α, β) -> mul!(res, adjoint(op), w, -α, β)
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!, op.Mv, op.Mtu, op.Maw)
 end
 
-function prod_op!(res::AbstractVector, op1::LinearOperator{T}, op2::LinearOperator{T}, 
+function prod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
                   v::AbstractVector, α, β) where T
   op2.prod!(op2.Mv, v, one(T), zero(T))
   op1.prod!(res, op2.Mv, α, β)
@@ -68,9 +68,9 @@ end
 ## Scalar times operator. (# commutation α*v ???)
 function *(op::AbstractLinearOperator, x::Number)
   S = promote_type(eltype(op), typeof(x))
-  prod! = @closure (res, v, α, β) -> op.prod!(res, v, x * α, β)
-  tprod! = @closure (res, u, α, β) -> op.tprod!(res, u, x * α, β)
-  ctprod! = @closure (res, w, α, β) -> op.ctprod!(res, w, x' * α, β)
+  prod! = @closure (res, v, α, β) -> mul!(res, op, v, x * α, β)
+  tprod! = @closure (res, u, α, β) -> mul!(res, transpose(op), u, x * α, β)
+  ctprod! = @closure (res, w, α, β) -> mul!(res, adjoint(op), w, x' * α, β)
   LinearOperator{S}(op.nrow, op.ncol, op.symmetric, op.hermitian && isreal(x), prod!, tprod!, ctprod!, op.Mv, op.Mtu, op.Maw)
 end
 
