@@ -37,16 +37,19 @@ function mulOpEye!(res, v, α, β)
 end
 
 """
+    opEye(Mv)
     opEye(T, n)
     opEye(n)
 
-Identity operator of order `n` and of data type `T` (defaults to `Float64`).
+Identity operator of order `n` and of data type `T` (defaults to `Float64`) with preallocated vector `Mv`.
 """
-function opEye(T::DataType, n::Int)
+function opEye(Mv::AbstractVector{T}) where T
+  n = length(Mv)
   prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
-  LinearOperator{T}(n, n, true, true, prod!, prod!, prod!)
+  LinearOperator{T}(n, n, true, true, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
+opEye(T::DataType, n::Int) = opEye(zeros(T, n))
 opEye(n::Int) = opEye(Float64, n)
 
 # TODO: not type stable
@@ -57,14 +60,16 @@ opEye(n::Int) = opEye(Float64, n)
 Rectangular identity operator of size `nrow`x`ncol` and of data type `T`
 (defaults to `Float64`).
 """
-function opEye(T::DataType, nrow::Int, ncol::Int)
+function opEye(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+  length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   if nrow == ncol
     return opEye(T, nrow)
   end
   prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
-  return LinearOperator{T}(nrow, ncol, false, false, prod!, prod!, prod!)
+  return LinearOperator{T}(nrow, ncol, false, false, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
+opEye(T::DataType, nrow::Int, ncol::Int) =  opEye(zeros(T, nrow), nrow, ncol)
 opEye(nrow::Int, ncol::Int) = opEye(Float64, nrow, ncol)
 
 function mulOpOnes!(res, v, α, β)
@@ -90,17 +95,19 @@ function mulOpZeros!(res, v, α, β)
 end
 
 """
+    opZeros(Mv, nrow, ncol)
     opZeros(T, nrow, ncol)
     opZeros(nrow, ncol)
 
-Zero operator of size `nrow`-by-`ncol` and of data type `T` (defaults to
-`Float64`).
+Zero operator of size `nrow`-by-`ncol`, of data type `T` (defaults to
+`Float64`) and storage vector Mv.
 """
-function opZeros(T::DataType, nrow::Int, ncol::Int)
+function opZeros(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
   prod! = @closure (res, v, α, β) -> mulOpZeros!(res, v, α, β)
-  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!)
+  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
+opZeros(T::DataType, nrow::Int, ncol::Int) = opZeros(zeros(T, nrow), nrow, ncol)
 opZeros(nrow::Int, ncol::Int) = opZeros(Float64, nrow, ncol)
 
 ###############

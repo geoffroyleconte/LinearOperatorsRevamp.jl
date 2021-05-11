@@ -5,6 +5,7 @@ using FastClosures, LinearAlgebra, Printf, SparseArrays
 # Basic defitions
 include("abstract.jl")
 include("constructors.jl")
+include("cat.jl")
 
 # Operations
 include("operations.jl") # This first
