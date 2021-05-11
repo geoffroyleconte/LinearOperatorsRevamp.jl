@@ -9,6 +9,7 @@ include("PreallocatedLinearOperators.jl")
 
 # Operations
 include("operations.jl") # This first
+include("adjtrans.jl")
 
 include("special-operators.jl")
 

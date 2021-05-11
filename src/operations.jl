@@ -7,9 +7,7 @@ function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::Abstract
 end
 
 function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::AbstractVector{T}) where T
-  (size(v, 1) == size(op, 2) && size(res, 1) == size(op, 1)) || throw(LinearOperatorException("shape mismatch"))
-  increase_nprod(op)
-  op.prod!(res, v, one(T), zero(T))
+  mul!(res, op, v, one(T), zero(T))
 end
 
 # Apply an operator to a vector.
@@ -25,7 +23,7 @@ end
 
 function -(op::AbstractLinearOperator{T}) where {T}
   prod! = @closure (res, v, α, β) -> op.prod!(res, v, -α, β)
-  tprod! = @closure (res, u, α, β) -> op.tprod(res, u, -α, β)
+  tprod! = @closure (res, u, α, β) -> op.tprod!(res, u, -α, β)
   ctprod! = @closure (res, w, α, β) -> op.ctprod!(res, w, -α, β)
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!)
 end
