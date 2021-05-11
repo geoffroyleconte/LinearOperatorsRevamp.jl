@@ -1,12 +1,12 @@
 import Base.+, Base.-, Base.*, LinearAlgebra.mul!
 
-function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::AbstractVector{T}, α::T, β::T) where T 
+function mul!(res::AbstractVector, op::AbstractLinearOperator{T}, v::AbstractVector, α, β) where T 
   (size(v, 1) == size(op, 2) && size(res, 1) == size(op, 1)) || throw(LinearOperatorException("shape mismatch"))
   increase_nprod(op)
   op.prod!(res, v, α, β)
 end
 
-function mul!(res::AbstractVector{T}, op::AbstractLinearOperator{T}, v::AbstractVector{T}) where T
+function mul!(res::AbstractVector, op::AbstractLinearOperator{T}, v::AbstractVector) where T
   mul!(res, op, v, one(T), zero(T))
 end
 
@@ -21,34 +21,33 @@ end
 # Unary operations.
 +(op::AbstractLinearOperator) = op
 
-function -(op::AbstractLinearOperator{T}) where {T}
+function -(op::AbstractLinearOperator{T}) where T
   prod! = @closure (res, v, α, β) -> op.prod!(res, v, -α, β)
   tprod! = @closure (res, u, α, β) -> op.tprod!(res, u, -α, β)
   ctprod! = @closure (res, w, α, β) -> op.ctprod!(res, w, -α, β)
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!, op.Mv, op.Mtu, op.Maw)
 end
 
-function prod_op!(res::AbstractVector{T}, op1::LinearOperator{T}, op2::LinearOperator{T}, 
-                  v::AbstractVector{T}, α::T, β::T) where {T}
+function prod_op!(res::AbstractVector, op1::LinearOperator{T}, op2::LinearOperator{T}, 
+                  v::AbstractVector, α, β) where T
   op2.prod!(op2.Mv, v, one(T), zero(T))
   op1.prod!(res, op2.Mv, α, β)
 end
 
-function tprod_op!(res::AbstractVector{T}, op1::LinearOperator{T}, op2::LinearOperator{T}, 
-                   u::AbstractVector{T}, α::T, β::T) where {T}
+function tprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                   u::AbstractVector, α, β) where T
   op1.tprod!(op1.Mtu, u, one(T), zero(T))
   op2.tprod!(res, op1.Mtu, α, β)
 end
 
-function ctprod_op!(res::AbstractVector{T}, op1::LinearOperator{T}, op2::LinearOperator{T}, 
-                    u::AbstractVector{T}, α::T, β::T) where {T}
+function ctprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                    u::AbstractVector, α, β) where T
   op1.ctprod!(op1.Maw, w, one(T), zero(T))
   op2.ctprod!(res, op1.Maw, α, β)
 end
 
 ## Operator times operator.
-function *(op1::LinearOperator{T, S, F1, Ft1, Fct1}, 
-           op2::LinearOperator{T, S, F2, Ft2, Fct2}) where {T, S, F1, Ft1, Fct1, F2, Ft2, Fct2}
+function *(op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}) where T
   (m1, n1) = size(op1)
   (m2, n2) = size(op2)
   if m2 != n1
@@ -80,20 +79,20 @@ end
 
 # Operator + operator.
 
-function sum_prod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                   v::AbstractVector{T}, α::T, β::T) where T
+function sum_prod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                   v::AbstractVector, α, β) where T
   op1.prod!(res, v, α, β)
   op2.prod!(res, v, α, one(T))
 end
 
-function sum_tprod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                    u::AbstractVector{T}, α::T, β::T) where T
+function sum_tprod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                    u::AbstractVector, α, β) where T
 op1.tprod!(res, u, α, β)
 op2.tprod!(res, u, α, one(T))
 end
 
-function sum_ctprod!(res::AbstractVector{T}, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                     w::AbstractVector{T}, α::T, β::T) where T
+function sum_ctprod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
+                     w::AbstractVector, α, β) where T
   op1.ctprod!(res, w, α, β)
   op2.ctprod!(res, w, α, one(T))
 end
@@ -113,9 +112,9 @@ function +(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
     n1,
     symmetric(op1) && symmetric(op2),
     hermitian(op1) && hermitian(op2),
-    prod,
-    tprod,
-    ctprod,
+    prod!,
+    tprod!,
+    ctprod!,
     op2.Mv,
     op2.Mtu,
     op2.Maw

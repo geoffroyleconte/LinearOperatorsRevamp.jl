@@ -4,23 +4,20 @@ hcat(A::AbstractLinearOperator, B::AbstractMatrix) = hcat(A, LinearOperator(B))
 
 hcat(A::AbstractMatrix, B::AbstractLinearOperator) = hcat(LinearOperator(A), B)
 
-function hcat_prod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                    Ancol::Int, nV::Int,
-                    v::AbstractVector{T}, α::T, β::T) where T
+function hcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
+                    Ancol::Int, nV::Int, v::AbstractVector, α, β) where T
   A.prod!(res, view(v, 1:Ancol), α, β)
   B.prod!(res, view(v, (Ancol+1): nV), α, one(T))
 end
 
-function hcat_tprod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                     Ancol::Int, nV::Int,     
-                     u::AbstractVector{T}, α::T, β::T) where T
+function hcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
+                     Ancol::Int, nV::Int, u::AbstractVector, α, β) where T
   A.tprod!(view(res, 1:Ancol), u, α, β)
   B.tprod!(view(res, (Ancol+1): nV), u, α, β)
 end
 
-function hcat_ctprod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                      Ancol::Int, nV::Int,     
-                      w::AbstractVector{T}, α::T, β::T) where T
+function hcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
+                      Ancol::Int, nV::Int, w::AbstractVector, α, β) where T
   A.ctprod!(view(res, 1:Ancol), w, α, β)
   B.ctprod!(view(res, (Ancol+1): nV), w, α, β)
 end
@@ -55,23 +52,20 @@ vcat(A::AbstractLinearOperator, B::AbstractMatrix) = vcat(A, LinearOperator(B))
 
 vcat(A::AbstractMatrix, B::AbstractLinearOperator) = vcat(LinearOperator(A), B)
 
-function vcat_prod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                    Anrow::Int, nV::Int,     
-                    u::AbstractVector{T}, α::T, β::T) where T
+function vcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
+                    Anrow::Int, nV::Int, u::AbstractVector, α, β) where T
   A.prod!(view(res, 1:Anrow), u, α, β)
   B.prod!(view(res, (Anrow+1): nV), u, α, β)
 end
 
-function vcat_tprod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                     Anrow::Int, nV::Int,
-                     v::AbstractVector{T}, α::T, β::T) where T
+function vcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
+                     Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
   A.tprod!(res, view(v, 1:Anrow), α, β)
   B.tprod!(res, view(v, (Anrow+1): nV), α, one(T))
 end
 
-function vcat_ctprod!(res::AbstractVector{T}, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                     Anrow::Int, nV::Int,
-                     v::AbstractVector{T}, α::T, β::T) where T
+function vcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
+                     Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
   A.ctprod!(res, view(v, 1:Anrow), α, β)
   B.ctprod!(res, view(v, (Anrow+1): nV), α, one(T))
 end
