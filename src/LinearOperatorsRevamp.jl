@@ -22,7 +22,7 @@ include("special-operators.jl")
 # include("TimedOperators.jl")
 
 # Utilities
-# include("utilities.jl")
+include("utilities.jl")
 
 # include("deprecated.jl")
 

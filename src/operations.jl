@@ -14,6 +14,7 @@ end
 function *(op::AbstractLinearOperator{T}, v::AbstractVector{S}) where {T, S}
   nrow, ncol = size(op)
   res = similar(v, nrow)
+  res .= 0 # in case v has some NaN
   mul!(res, op, v)
   return res
 end

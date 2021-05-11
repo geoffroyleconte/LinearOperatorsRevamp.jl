@@ -369,7 +369,10 @@ function test_linop()
       @test(norm(conj.(A) * v - transpose(adjoint(op)) * v) <= rtol * norm(v))
       @test(norm(conj.(A) * v - adjoint(transpose(op)) * v) <= rtol * norm(v))
 
-      op = LinearOperator(nrow, nrow, false, false, v -> A * v, nothing, v -> adjoint(A) * v)
+      op = LinearOperator(nrow, nrow, false, false, 
+        (res, v, α, β) -> mul!(res, A, v, α, β), 
+        nothing, 
+        (res, v, α, β) -> mul!(res, adjoint(A), v, α, β))
       @test(norm(transpose(A) * v - transpose(op) * v) <= rtol * norm(v))
       @test(norm(adjoint(A) * v - adjoint(op) * v) <= rtol * norm(v))
       @test(norm(A * v - transpose(transpose(op)) * v) <= rtol * norm(v))
