@@ -86,10 +86,13 @@ function show(io::IO, op::ConjugateLinearOperator)
   show(io, op.parent)
 end
 
-function mul!(res::AbstractVector{T}, op::AdjointLinearOperator{T, S}, v::AbstractVector{U}, α::T, β::T) where {T, S, U}
+function mul!(res::AbstractVector, op::AdjointLinearOperator{T, S}, v::AbstractVector, α, β) where {T, S}
   p = op.parent
   (length(v) == size(p, 1) && length(res) == size(p, 2)) || throw(LinearOperatorException("shape mismatch"))
-  ishermitian(p) && mul!(res, p, v, α, β) && return nothing
+  if ishermitian(p)
+    mul!(res, p, v, α, β) 
+    return nothing
+  end
   if p.ctprod! !== nothing
     increase_nctprod(p)
     p.ctprod!(res, v, α, β)
@@ -115,10 +118,13 @@ function mul!(res::AbstractVector{T}, op::AdjointLinearOperator{T, S}, v::Abstra
   return nothing
 end
 
-function mul!(res::AbstractVector{T}, op::TransposeLinearOperator{T, S}, v::AbstractVector{U}, α::T, β::T) where {T, S, U}
+function mul!(res::AbstractVector, op::TransposeLinearOperator{T, S}, v::AbstractVector, α, β) where {T, S}
   p = op.parent
   length(v) == size(p, 1) || throw(LinearOperatorException("shape mismatch"))
-  issymmetric(p) && mul!(res, p, v, α, β) && return nothing
+  if issymmetric(p) 
+    mul!(res, p, v, α, β) 
+    return nothing
+  end
   if p.tprod! !== nothing
     increase_ntprod(p)
     p.tprod!(res, v, α, β)
@@ -144,7 +150,7 @@ function mul!(res::AbstractVector{T}, op::TransposeLinearOperator{T, S}, v::Abst
   return nothing
 end
 
-function mul!(res::AbstractVector{T}, op::ConjugateLinearOperator{T, S}, v::AbstractVector{U}, α::T, β::T) where {T, S, U}
+function mul!(res::AbstractVector, op::ConjugateLinearOperator{T, S}, v::AbstractVector, α, β) where {T, S}
   p = op.parent
   mul!(res, p, conj.(v), α, β)
   res .= conj.(res)

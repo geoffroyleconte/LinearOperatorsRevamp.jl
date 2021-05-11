@@ -32,8 +32,9 @@ function show(io::IO, op::opEye)
   println(io, "Identity operator")
 end
 
-function mulOpEye!(res, v, α, β)
-  res .= α .* v .+ β .* res
+function mulOpEye!(res, v, α, β, n_min)
+  res[1:n_min] .= @views α .* v[1:n_min] .+ β .* res[1:n_min]
+  res[n_min+1:end] .= 0
 end
 
 """
@@ -45,7 +46,7 @@ Identity operator of order `n` and of data type `T` (defaults to `Float64`) with
 """
 function opEye(Mv::AbstractVector{T}) where T
   n = length(Mv)
-  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
+  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β, n)
   LinearOperator{T}(n, n, true, true, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
@@ -65,7 +66,7 @@ function opEye(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
   if nrow == ncol
     return opEye(T, nrow)
   end
-  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β)
+  prod! = @closure (res, v, α, β) -> mulOpEye!(res, v, α, β, min(nrow, ncol))
   return LinearOperator{T}(nrow, ncol, false, false, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 

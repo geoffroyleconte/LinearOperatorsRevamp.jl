@@ -266,14 +266,14 @@ function test_linop()
       @test op === op * op2 === op2 * op
     end
 
-    @testset "Ones" begin
-      E = opOnes(nrow, ncol)
-      v = simple_vector(ComplexF64, nrow)
-      u = simple_vector(ComplexF64, ncol)
-      @test(norm(E * u - sum(u) * ones(nrow)) <= rtol * norm(u))
-      @test(norm(transpose(E) * v - sum(v) * ones(ncol)) <= rtol * norm(v))
-      @test(norm(E' * v - sum(v) * ones(ncol)) <= rtol * norm(v))
-    end
+    # @testset "Ones" begin
+    #   E = opOnes(nrow, ncol)
+    #   v = simple_vector(ComplexF64, nrow)
+    #   u = simple_vector(ComplexF64, ncol)
+    #   @test(norm(E * u - sum(u) * ones(nrow)) <= rtol * norm(u))
+    #   @test(norm(transpose(E) * v - sum(v) * ones(ncol)) <= rtol * norm(v))
+    #   @test(norm(E' * v - sum(v) * ones(ncol)) <= rtol * norm(v))
+    # end
 
     @testset "Zeros" begin
       O = opZeros(nrow, ncol)
@@ -332,27 +332,27 @@ function test_linop()
     #   @test check_positive_definite(A, semi = true)
     # end
 
-    @testset "Hermitian" begin
-      A = simple_matrix(ComplexF64, nrow, nrow)
-      d = real.(diag(A))
-      A = tril(A, -1)
-      C = A + A' + diagm(0 => d)
-      H = opHermitian(d, A)
-      v = simple_vector(ComplexF64, nrow)
-      @test(norm(H * v - C * v) <= rtol * norm(v))
-      @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
-      @test(norm(H' * v - C * v) <= rtol * norm(v))
+    # @testset "Hermitian" begin
+    #   A = simple_matrix(ComplexF64, nrow, nrow)
+    #   d = real.(diag(A))
+    #   A = tril(A, -1)
+    #   C = A + A' + diagm(0 => d)
+    #   H = opHermitian(d, A)
+    #   v = simple_vector(ComplexF64, nrow)
+    #   @test(norm(H * v - C * v) <= rtol * norm(v))
+    #   @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
+    #   @test(norm(H' * v - C * v) <= rtol * norm(v))
 
-      @test(!check_hermitian(LinearOperator(A - A')))
-      @test(!check_positive_definite(LinearOperator(-A' * A)))
+    #   @test(!check_hermitian(LinearOperator(A - A')))
+    #   @test(!check_positive_definite(LinearOperator(-A' * A)))
 
-      C = simple_matrix(ComplexF64, nrow, nrow, symmetric = true)
-      H = opHermitian(C)
-      v = simple_vector(ComplexF64, nrow)
-      @test(norm(H * v - C * v) <= rtol * norm(v))
-      @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
-      @test(norm(H' * v - C * v) <= rtol * norm(v))
-    end
+    #   C = simple_matrix(ComplexF64, nrow, nrow, symmetric = true)
+    #   H = opHermitian(C)
+    #   v = simple_vector(ComplexF64, nrow)
+    #   @test(norm(H * v - C * v) <= rtol * norm(v))
+    #   @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
+    #   @test(norm(H' * v - C * v) <= rtol * norm(v))
+    # end
 
     @testset "Transpose and adjoint" begin
       A = simple_matrix(ComplexF64, nrow, nrow)
