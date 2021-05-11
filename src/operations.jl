@@ -28,22 +28,34 @@ function -(op::AbstractLinearOperator{T}) where {T}
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!)
 end
 
-# function prod_op!(res::AbstractVector{T}, op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T}, 
-#                   v::AbstractVector{T}, α::T, β::T)
-#   op2.prod!(op2.Mv, v, one(T), zero(T))
-#   op1.prod!(res, op2.Mv, α, β)
-# end
+function prod_op!(res::AbstractVector{T}, op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T}, 
+                  v::AbstractVector{T}, α::T, β::T) where {T}
+  op2.prod!(op2.Mv, v, one(T), zero(T))
+  op1.prod!(res, op2.Mv, α, β)
+end
 
-# ## Operator times operator.
-# function *(op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T})
-#   (m1, n1) = size(op1)
-#   (m2, n2) = size(op2)
-#   if m2 != n1
-#     throw(LinearOperatorException("shape mismatch"))
-#   end
-#   S = promote_type(eltype(op1), eltype(op2))
-#   prod = @closure (res, v, α, β) -> prod_op!(res, op1, op2, v, α, β)
-#   tprod = @closure u -> transpose(op2) * (transpose(op1) * u)
-#   ctprod = @closure w -> op2' * (op1' * w)
-#   LinearOperator{S}(m1, n2, false, false, prod, tprod, ctprod)
-# end
+function tprod_op!(res::AbstractVector{T}, op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T}, 
+                   u::AbstractVector{T}, α::T, β::T) where {T}
+  op1.tprod!(op1.Mtu, u, one(T), zero(T))
+  op2.tprod!(res, op1.Mtu, α, β)
+end
+
+function ctprod_op!(res::AbstractVector{T}, op1::PreallocatedLinearOperator{T}, op2::PreallocatedLinearOperator{T}, 
+                    u::AbstractVector{T}, α::T, β::T) where {T}
+  op1.ctprod!(op1.Maw, w, one(T), zero(T))
+  op2.ctprod!(res, op1.Maw, α, β)
+end
+
+## Operator times operator.
+function *(op1::PreallocatedLinearOperator{T, S, F1, Ft1, Fct1}, 
+           op2::PreallocatedLinearOperator{T, S, F2, Ft2, Fct2}) where {T, S, F1, Ft1, Fct1, F2, Ft2, Fct2}
+  (m1, n1) = size(op1)
+  (m2, n2) = size(op2)
+  if m2 != n1
+    throw(LinearOperatorException("shape mismatch"))
+  end
+  prod! = @closure (res, v, α, β) -> prod_op!(res, op1, op2, v, α, β)
+  tprod! = @closure (res, u, α, β) -> tprod_op!(res, op1, op2, u, α, β)
+  ctprod! = @closure (res, w, α, β) -> ctprod_op!(res, op1, op2, w, α, β)
+  PreallocatedLinearOperator{T}(m1, n2, false, false, prod!, tprod!, ctprod!, op1.Mv, op2.Mtu, op2.Maw)
+end
