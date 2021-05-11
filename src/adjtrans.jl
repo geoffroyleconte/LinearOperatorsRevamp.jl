@@ -168,5 +168,3 @@ end
 *(x::Number, op::AdjointLinearOperator) = adjoint(conj(x) * op.parent)
 *(x::Number, op::TransposeLinearOperator) = transpose(x * op.parent)
 *(x::Number, op::ConjugateLinearOperator) = conj(conj(x) * op.parent)
-
-# TODO: + with Adjoint and conjugate transpose

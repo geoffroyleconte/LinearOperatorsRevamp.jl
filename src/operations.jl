@@ -80,22 +80,9 @@ end
 
 # Operator + operator.
 
-function sum_prod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                   v::AbstractVector, α, β) where T
-  op1.prod!(res, v, α, β)
-  op2.prod!(res, v, α, one(T))
-end
-
-function sum_tprod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                    u::AbstractVector, α, β) where T
-op1.tprod!(res, u, α, β)
-op2.tprod!(res, u, α, one(T))
-end
-
-function sum_ctprod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                     w::AbstractVector, α, β) where T
-  op1.ctprod!(res, w, α, β)
-  op2.ctprod!(res, w, α, one(T))
+function sum_prod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, v::AbstractVector, α, β) where T
+  mul!(res, op1, v, α, β)
+  mul!(res, op2, v, α, one(T))
 end
 
 function +(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
@@ -106,19 +93,24 @@ function +(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
   end
   S = promote_type(eltype(op1), eltype(op2))
   prod! = @closure (res, v, α, β) -> sum_prod!(res, op1, op2, v, α, β)
-  tprod! = @closure (res, u, α, β) -> sum_tprod!(res, op1, op2, u, α, β)
-  ctprod! = @closure (res, w, α, β) -> sum_ctprod!(res, op1, op2, w, α, β)
+  tprod! = @closure (res, u, α, β) -> sum_prod!(res, transpose(op1), transpose(op2), u, α, β)
+  ctprod! = @closure (res, w, α, β) -> sum_prod!(res, adjoint(op1), adjoint(op2), w, α, β)
+  symm = (symmetric(op1) && symmetric(op2))
+  herm = (hermitian(op1) && hermitian(op2))
+  Mv = Vector{S}(undef, m1)
+  Mtu = symm ? Mv : Vector{S}(undef, n1)
+  Maw = herm ? Mv : Vector{S}(undef, n1)
   return LinearOperator{S}(
     m1,
     n1,
-    symmetric(op1) && symmetric(op2),
-    hermitian(op1) && hermitian(op2),
+    symm,
+    herm,
     prod!,
     tprod!,
     ctprod!,
-    op2.Mv,
-    op2.Mtu,
-    op2.Maw
+    Mv,
+    Mtu,
+    Maw
   )
 end
 
