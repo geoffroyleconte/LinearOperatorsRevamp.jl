@@ -4,19 +4,21 @@ authors = ["Geoffroy Leconte <gleconte50@gmail.com> and contributors"]
 version = "0.1.0"
 
 [deps]
-Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
 FastClosures = "9aa1b823-49e4-5ca5-8b0f-3971ec8bab6a"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
-TestSetExtensions = "98d24dd4-01ad-11ea-1b02-c9a08f80db04"
+TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
-FastClosures = "0.3"
+FastClosures = "0.2, 0.3"
+TimerOutputs = "^0.5"
 julia = "1"
 
 [extras]
+Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestSetExtensions = "98d24dd4-01ad-11ea-1b02-c9a08f80db04"
 
 [targets]
-test = ["Test"]
+test = ["Arpack", "Test", "TestSetExtensions"]
