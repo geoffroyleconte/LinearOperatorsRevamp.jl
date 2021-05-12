@@ -19,7 +19,7 @@ include("cat.jl")
 # include("linalg.jl")
 # include("PreallocatedLinearOperators.jl")
 include("special-operators.jl")
-# include("TimedOperators.jl")
+include("TimedOperators.jl")
 
 # Utilities
 include("utilities.jl")

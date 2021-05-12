@@ -35,7 +35,7 @@ function hcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
 
   prod = @closure (res, v, α, β) -> hcat_prod!(res, A, B, Ancol, Ancol+Bncol, v, α, β)
   tprod = @closure (res, u, α, β) -> hcat_tprod!(res, A, B, Ancol, Ancol+Bncol, u, α, β)
-  ctprod = @closure (res, w, α, β) -> hcat_tprod!(res, A, B, Ancol, Ancol+Bncol, w, α, β)
+  ctprod = @closure (res, w, α, β) -> hcat_ctprod!(res, A, B, Ancol, Ancol+Bncol, w, α, β)
   LinearOperator{S}(nrow, ncol, false, false, prod, tprod, ctprod, MvAB, MtuAB, MawAB)
 end
 
