@@ -13,8 +13,7 @@ end
 # Apply an operator to a vector.
 function *(op::AbstractLinearOperator{T}, v::AbstractVector{S}) where {T, S}
   nrow, ncol = size(op)
-  storagetype = typeof(v).name.wrapper{promote_type(T, S), typeof(v).parameters[2]}
-  res = storagetype(undef, nrow)
+  res = Vector{promote_type(T, S)}(undef, nrow)
   res .= 0 # in case v has some NaN
   mul!(res, op, v)
   return res

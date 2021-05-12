@@ -29,19 +29,9 @@ function hcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
   Ancol, Bncol = size(A, 2), size(B, 2)
   ncol = Ancol + Bncol
   S = promote_type(eltype(A), eltype(B))
-  if typeof(A) <: AdjointLinearOperator || typeof(A) <: TransposeLinearOperator || typeof(A) <: ConjugateLinearOperator
-    typevec = typeof(A.parent.Mv)
-  else
-    typevec = typeof(A.Mv)
-  end
-  storagetype = typevec.name.wrapper{S, typevec.parameters[2]}
-  MvAB = storagetype(undef, nrow)
-  MtuAB = storagetype(undef, ncol)
-  MawAB = storagetype(undef, ncol)
-
-  # MvAB = similar(A.Mv)
-  # MtuAB = vcat(A.Mtu, B.Mtu)
-  # MawAB = vcat(A.Maw, B.Maw) 
+  MvAB = res = Vector{S}(undef, nrow)
+  MtuAB = res = Vector{S}(undef, nrow)
+  MawAB = Vector{S}(undef, ncol)
 
   prod = @closure (res, v, α, β) -> hcat_prod!(res, A, B, Ancol, Ancol+Bncol, v, α, β)
   tprod = @closure (res, u, α, β) -> hcat_tprod!(res, A, B, Ancol, Ancol+Bncol, u, α, β)
@@ -86,19 +76,9 @@ function vcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
   nrow = Anrow + Bnrow
   ncol = size(A, 2)
   S = promote_type(eltype(A), eltype(B))
-  if typeof(A) <: AdjointLinearOperator || typeof(A) <: TransposeLinearOperator || typeof(A) <: ConjugateLinearOperator
-    typevec = typeof(A.parent.Mv)
-  else
-    typevec = typeof(A.Mv)
-  end
-  storagetype = typevec.name.wrapper{S, typevec.parameters[2]}
-  MvAB = storagetype(undef, nrow)
-  MtuAB = storagetype(undef, ncol)
-  MawAB = storagetype(undef, ncol)
-
-  # MvAB = vcat(A.Mv, B.Mv)
-  # MtuAB = similar(A.Mtu)
-  # MawAB = similar(A.Maw)
+  MvAB = Vector{S}(undef, nrow)
+  MtuAB = Vector{S}(undef, ncol)
+  MawAB = Vector{S}(undef, ncol)
 
   prod! = @closure (res, v, α, β) -> vcat_prod!(res, A, B, Anrow, Anrow+Bnrow, v, α, β)
   tprod! = @closure (res, u, α, β) -> vcat_tprod!(res, A, B, Anrow, Anrow+Bnrow, u, α, β)
