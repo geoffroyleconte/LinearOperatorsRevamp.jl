@@ -6,20 +6,20 @@ hcat(A::AbstractMatrix, B::AbstractLinearOperator) = hcat(LinearOperator(A), B)
 
 function hcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
                     Ancol::Int, nV::Int, v::AbstractVector, α, β) where T
-  A.prod!(res, view(v, 1:Ancol), α, β)
-  B.prod!(res, view(v, (Ancol+1): nV), α, one(T))
+  mul!(res, A, view(v, 1:Ancol), α, β)
+  mul!(res, B, view(v, (Ancol+1): nV), α, one(T))
 end
 
 function hcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
                      Ancol::Int, nV::Int, u::AbstractVector, α, β) where T
-  A.tprod!(view(res, 1:Ancol), u, α, β)
-  B.tprod!(view(res, (Ancol+1): nV), u, α, β)
+  mul!(view(res, 1:Ancol), transpose(A), u, α, β)
+  mul!(view(res, (Ancol+1): nV), transpose(B), u, α, β)
 end
 
 function hcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
                       Ancol::Int, nV::Int, w::AbstractVector, α, β) where T
-  A.ctprod!(view(res, 1:Ancol), w, α, β)
-  B.ctprod!(view(res, (Ancol+1): nV), w, α, β)
+  mul!(view(res, 1:Ancol), adjoint(A), w, α, β)
+  mul!(view(res, (Ancol+1): nV), adjoint(B), w, α, β)
 end
                      
 function hcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
@@ -29,10 +29,19 @@ function hcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
   Ancol, Bncol = size(A, 2), size(B, 2)
   ncol = Ancol + Bncol
   S = promote_type(eltype(A), eltype(B))
+  if typeof(A) <: AdjointLinearOperator || typeof(A) <: TransposeLinearOperator || typeof(A) <: ConjugateLinearOperator
+    typevec = typeof(A.parent.Mv)
+  else
+    typevec = typeof(A.Mv)
+  end
+  storagetype = typevec.name.wrapper{S, typevec.parameters[2]}
+  MvAB = storagetype(undef, nrow)
+  MtuAB = storagetype(undef, ncol)
+  MawAB = storagetype(undef, ncol)
 
-  MvAB = similar(A.Mv)
-  MtuAB = vcat(A.Mtu, B.Mtu)
-  MawAB = vcat(A.Maw, B.Maw) 
+  # MvAB = similar(A.Mv)
+  # MtuAB = vcat(A.Mtu, B.Mtu)
+  # MawAB = vcat(A.Maw, B.Maw) 
 
   prod = @closure (res, v, α, β) -> hcat_prod!(res, A, B, Ancol, Ancol+Bncol, v, α, β)
   tprod = @closure (res, u, α, β) -> hcat_tprod!(res, A, B, Ancol, Ancol+Bncol, u, α, β)
@@ -54,20 +63,20 @@ vcat(A::AbstractMatrix, B::AbstractLinearOperator) = vcat(LinearOperator(A), B)
 
 function vcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
                     Anrow::Int, nV::Int, u::AbstractVector, α, β) where T
-  A.prod!(view(res, 1:Anrow), u, α, β)
-  B.prod!(view(res, (Anrow+1): nV), u, α, β)
+  mul!(view(res, 1:Anrow), A, u, α, β)
+  mul!(view(res, (Anrow+1): nV), B, u, α, β)
 end
 
 function vcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
                      Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
-  A.tprod!(res, view(v, 1:Anrow), α, β)
-  B.tprod!(res, view(v, (Anrow+1): nV), α, one(T))
+  mul!(res, transpose(A), view(v, 1:Anrow), α, β)
+  mul!(res, transpose(B), view(v, (Anrow+1): nV), α, one(T))
 end
 
 function vcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
                      Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
-  A.ctprod!(res, view(v, 1:Anrow), α, β)
-  B.ctprod!(res, view(v, (Anrow+1): nV), α, one(T))
+  mul!(res, adjoint(A), view(v, 1:Anrow), α, β)
+  mul!(res, adjoint(B), view(v, (Anrow+1): nV), α, one(T))
 end
 
 function vcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
@@ -77,10 +86,19 @@ function vcat(A::AbstractLinearOperator, B::AbstractLinearOperator)
   nrow = Anrow + Bnrow
   ncol = size(A, 2)
   S = promote_type(eltype(A), eltype(B))
+  if typeof(A) <: AdjointLinearOperator || typeof(A) <: TransposeLinearOperator || typeof(A) <: ConjugateLinearOperator
+    typevec = typeof(A.parent.Mv)
+  else
+    typevec = typeof(A.Mv)
+  end
+  storagetype = typevec.name.wrapper{S, typevec.parameters[2]}
+  MvAB = storagetype(undef, nrow)
+  MtuAB = storagetype(undef, ncol)
+  MawAB = storagetype(undef, ncol)
 
-  MvAB = vcat(A.Mv, B.Mv)
-  MtuAB = similar(A.Mtu)
-  MawAB = similar(A.Maw)
+  # MvAB = vcat(A.Mv, B.Mv)
+  # MtuAB = similar(A.Mtu)
+  # MawAB = similar(A.Maw)
 
   prod! = @closure (res, v, α, β) -> vcat_prod!(res, A, B, Anrow, Anrow+Bnrow, v, α, β)
   tprod! = @closure (res, u, α, β) -> vcat_tprod!(res, A, B, Anrow, Anrow+Bnrow, u, α, β)

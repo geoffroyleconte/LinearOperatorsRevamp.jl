@@ -489,14 +489,20 @@ function test_linop()
     # Adjoint of a symmetric non-hermitian
     A = simple_matrix(ComplexF64, 3, 3)
     A = A + transpose(A)
-    op = LinearOperator(3, 3, true, false, v -> A * v)
+    op = LinearOperator(3, 3, true, false, (res, v, α, β) -> mul!(res, A, v))
     v = rand(3)
     @test op' * v ≈ A' * v
   end
 
   @testset ExtendedTestSet "Type specific operator" begin
-    prod = v -> [v[1] + v[2]; v[2]]
-    ctprod = v -> [v[1]; v[1] + v[2]]
+    function prod(res, v, α, β) 
+      res[1] = v[1] + v[2] 
+      res[2] = v[2]
+    end
+    function ctprod(res, v, α, β) 
+      res[1] = v[1] 
+      res[2] = v[1] + v[2]
+    end
     op = LinearOperator(2, 2, false, false, prod, nothing, ctprod)
     @test eltype(op) == Complex{Float64}
     for T in (Complex{Float64}, Complex{Float32}, BigFloat, Float64, Float32, Float16, Int32)
@@ -508,15 +514,21 @@ function test_linop()
     end
 
     A = [im 1.0; 0.0 1.0]
-    prod = v -> A * v
-    tprod = u -> transpose(A) * u
-    ctprod = w -> A' * w
-    opC = LinearOperator(2, 2, false, false, prod, tprod, ctprod)
+    function prod!(res, v, α, β) 
+      mul!(res, A, v)
+    end
+    function tprod!(res, u, α, β)
+      mul!(res, transpose(A), u)
+    end
+    function ctprod!(res, w, α, β)
+      mul!(res, A', w)
+    end
+    opC = LinearOperator(2, 2, false, false, prod!, tprod!, ctprod!)
     v = simple_vector(ComplexF64, 2)
     @test A == Matrix(opC)
-    opF = LinearOperator(Float64, 2, 2, false, false, prod, tprod, ctprod) # The type is a lie
+    opF = LinearOperator(Float64, 2, 2, false, false, prod!, tprod!, ctprod!) # The type is a lie
     @test eltype(opF) == Float64
-    @test_throws TypeError Matrix(opF)
+    @test_throws InexactError Matrix(opF) # changed here TypeError to InexactError
   end
 
   # Issue #80
