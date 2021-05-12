@@ -30,21 +30,21 @@ function -(op::AbstractLinearOperator{T}) where T
 end
 
 function prod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                  v::AbstractVector, α, β) where T
-  op2.prod!(op2.Mv, v, one(T), zero(T))
-  op1.prod!(res, op2.Mv, α, β)
+                  vtmp::AbstractVector, v::AbstractVector, α, β) where T
+  mul!(vtmp, op2, v)
+  mul!(res, op1, vtmp, α, β)
 end
 
 function tprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                   u::AbstractVector, α, β) where T
-  op1.tprod!(op1.Mtu, u, one(T), zero(T))
-  op2.tprod!(res, op1.Mtu, α, β)
+                   utmp::AbstractVector, u::AbstractVector, α, β) where T
+  mul!(utmp, transpose(op1), u)
+  mul!(res, transpose(op2), utmp, α, β)
 end
 
 function ctprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                    u::AbstractVector, α, β) where T
-  op1.ctprod!(op1.Maw, w, one(T), zero(T))
-  op2.ctprod!(res, op1.Maw, α, β)
+                    wtmp::AbstractVector, w::AbstractVector, α, β) where T
+  mul!(wtmp, adjoint(op1), w)
+  mul!(res, adjoint(op2), wtmp, α, β)
 end
 
 ## Operator times operator.
@@ -54,16 +54,31 @@ function *(op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}) where
   if m2 != n1
     throw(LinearOperatorException("shape mismatch"))
   end
-  prod! = @closure (res, v, α, β) -> prod_op!(res, op1, op2, v, α, β)
-  tprod! = @closure (res, u, α, β) -> tprod_op!(res, op1, op2, u, α, β)
-  ctprod! = @closure (res, w, α, β) -> ctprod_op!(res, op1, op2, w, α, β)
-  LinearOperator{T}(m1, n2, false, false, prod!, tprod!, ctprod!, op1.Mv, op2.Mtu, op2.Maw)
+  #tmp vector for products
+  if typeof(op2) <: AdjointLinearOperator || typeof(op2) <: TransposeLinearOperator
+    vtmp = op2.parent.Mtu 
+  else
+    vtmp = op2.Mv
+  end
+  if typeof(op1) <: AdjointLinearOperator || typeof(op2) <: TransposeLinearOperator
+    utmp = op1.parent.Mv 
+    wtmp = op1.parent.Mv 
+  else
+    utmp = op1.Mtu 
+    wtmp = op1.Maw
+  end
+  prod! = @closure (res, v, α, β) -> prod_op!(res, op1, op2, vtmp, v, α, β)
+  tprod! = @closure (res, u, α, β) -> tprod_op!(res, op1, op2, utmp, u, α, β)
+  ctprod! = @closure (res, w, α, β) -> ctprod_op!(res, op1, op2, wtmp, w, α, β)
+  Mv = Vector{T}(undef, m1)
+  Mtu = Vector{T}(undef, n2)
+  Maw = Vector{T}(undef, n2)
+  LinearOperator{T}(m1, n2, false, false, prod!, tprod!, ctprod!, Mv, Mtu, Maw)
 end
 
 ## Matrix times operator.
 *(M::AbstractMatrix, op::AbstractLinearOperator) = LinearOperator(M) * op
 *(op::AbstractLinearOperator, M::AbstractMatrix) = op * LinearOperator(M)
-
 
 ## Scalar times operator. (# commutation α*v ???)
 function *(op::AbstractLinearOperator, x::Number)
