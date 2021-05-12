@@ -10,7 +10,7 @@ include("constructors.jl")
 include("operations.jl") # This first
 include("adjtrans.jl")
 include("cat.jl")
-# include("kron.jl")
+include("kron.jl")
 
 # quasi-Newton operators
 # include("qn.jl")

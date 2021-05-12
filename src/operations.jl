@@ -55,12 +55,12 @@ function *(op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}) where
     throw(LinearOperatorException("shape mismatch"))
   end
   #tmp vector for products
-  if typeof(op2) <: AdjointLinearOperator || typeof(op2) <: TransposeLinearOperator
+  if typeof(op2) <: AdjointLinearOperator || typeof(op2) <: TransposeLinearOperator || typeof(op2) <: ConjugateLinearOperator
     vtmp = op2.parent.Mtu 
   else
     vtmp = op2.Mv
   end
-  if typeof(op1) <: AdjointLinearOperator || typeof(op2) <: TransposeLinearOperator
+  if typeof(op1) <: AdjointLinearOperator || typeof(op1) <: TransposeLinearOperator || typeof(op1) <: ConjugateLinearOperator
     utmp = op1.parent.Mv 
     wtmp = op1.parent.Mv 
   else
