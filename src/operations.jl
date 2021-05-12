@@ -29,26 +29,27 @@ function -(op::AbstractLinearOperator{T}) where T
   LinearOperator{T}(op.nrow, op.ncol, op.symmetric, op.hermitian, prod!, tprod!, ctprod!, op.Mv, op.Mtu, op.Maw)
 end
 
-function prod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                  vtmp::AbstractVector, v::AbstractVector, α, β) where T
+function prod_op!(res::AbstractVector, op1::AbstractLinearOperator, op2::AbstractLinearOperator, 
+                  vtmp::AbstractVector, v::AbstractVector, α, β)
   mul!(vtmp, op2, v)
   mul!(res, op1, vtmp, α, β)
 end
 
-function tprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                   utmp::AbstractVector, u::AbstractVector, α, β) where T
+function tprod_op!(res::AbstractVector, op1::AbstractLinearOperator, op2::AbstractLinearOperator, 
+                   utmp::AbstractVector, u::AbstractVector, α, β)
   mul!(utmp, transpose(op1), u)
   mul!(res, transpose(op2), utmp, α, β)
 end
 
-function ctprod_op!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, 
-                    wtmp::AbstractVector, w::AbstractVector, α, β) where T
+function ctprod_op!(res::AbstractVector, op1::AbstractLinearOperator, op2::AbstractLinearOperator, 
+                    wtmp::AbstractVector, w::AbstractVector, α, β)
   mul!(wtmp, adjoint(op1), w)
   mul!(res, adjoint(op2), wtmp, α, β)
 end
 
 ## Operator times operator.
-function *(op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}) where T
+function *(op1::AbstractLinearOperator, op2::AbstractLinearOperator)
+  T = promote_type(eltype(op1), eltype(op2))
   (m1, n1) = size(op1)
   (m2, n2) = size(op2)
   if m2 != n1
