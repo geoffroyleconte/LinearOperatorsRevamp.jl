@@ -120,7 +120,7 @@ end
 
 function mul!(res::AbstractVector, op::TransposeLinearOperator{T, S}, v::AbstractVector, α, β) where {T, S}
   p = op.parent
-  length(v) == size(p, 1) || throw(LinearOperatorException("shape mismatch"))
+  (length(v) == size(p, 1) && length(res) == size(p, 2)) || throw(LinearOperatorException("shape mismatch"))
   if issymmetric(p) 
     mul!(res, p, v, α, β) 
     return nothing
