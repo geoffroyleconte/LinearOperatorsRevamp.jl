@@ -164,30 +164,30 @@ function test_linop()
     end
 
     B2 = simple_matrix(ComplexF64, ncol, ncol + 1)
-    # @testset "Operator ± scalar" begin
-    #   opC = LinearOperator(A1) + 2.12345
-    #   @test(norm(A1 .+ 2.12345 - Matrix(opC)) <= rtol * norm(A1 .+ 2.12345))
+    @testset "Operator ± scalar" begin
+      opC = LinearOperator(A1) + 2.12345
+      @test(norm(A1 .+ 2.12345 - Matrix(opC)) <= rtol * norm(A1 .+ 2.12345))
 
-    #   opC = 2.12345 + LinearOperator(A1)
-    #   @test(norm(A1 .+ 2.12345 - Matrix(opC)) <= rtol * norm(A1 .+ 2.12345))
+      opC = 2.12345 + LinearOperator(A1)
+      @test(norm(A1 .+ 2.12345 - Matrix(opC)) <= rtol * norm(A1 .+ 2.12345))
 
-    #   opC = LinearOperator(A1) - 2.12345
-    #   @test(norm((A1 .- 2.12345) - Matrix(opC)) <= rtol * norm(A1 .- 2.12345))
+      opC = LinearOperator(A1) - 2.12345
+      @test(norm((A1 .- 2.12345) - Matrix(opC)) <= rtol * norm(A1 .- 2.12345))
 
-    #   opC = 2.12345 - LinearOperator(A1)
-    #   @test(norm((2.12345 .- A1) - Matrix(opC)) <= rtol * norm(2.12345 .- A1))
+      opC = 2.12345 - LinearOperator(A1)
+      @test(norm((2.12345 .- A1) - Matrix(opC)) <= rtol * norm(2.12345 .- A1))
 
-    #   C = A1 * B2
-    #   opC = LinearOperator(A1) * LinearOperator(B2)
-    #   v = simple_vector(ComplexF64, ncol + 1)
-    #   @test(norm(opC * v - C * v) <= rtol * norm(v))
-    #   u = simple_vector(ComplexF64, nrow)
-    #   @test(norm(transpose(opC) * u - transpose(C) * u) <= rtol * norm(u))
-    #   @test(norm(opC' * u - C' * u) <= rtol * norm(u))
+      C = A1 * B2
+      opC = LinearOperator(A1) * LinearOperator(B2)
+      v = simple_vector(ComplexF64, ncol + 1)
+      @test(norm(opC * v - C * v) <= rtol * norm(v))
+      u = simple_vector(ComplexF64, nrow)
+      @test(norm(transpose(opC) * u - transpose(C) * u) <= rtol * norm(u))
+      @test(norm(opC' * u - C' * u) <= rtol * norm(u))
 
-    #   @test_throws LinearOperatorException LinearOperator(A1) + LinearOperator(B2)
-    #   @test_throws LinearOperatorException LinearOperator(B2) * LinearOperator(A1)
-    # end
+      @test_throws LinearOperatorException LinearOperator(A1) + LinearOperator(B2)
+      @test_throws LinearOperatorException LinearOperator(B2) * LinearOperator(A1)
+    end
 
     A1B2 = A1 * B2
     @testset "Matrix × operator" begin
@@ -266,14 +266,14 @@ function test_linop()
       @test op === op * op2 === op2 * op
     end
 
-    # @testset "Ones" begin
-    #   E = opOnes(nrow, ncol)
-    #   v = simple_vector(ComplexF64, nrow)
-    #   u = simple_vector(ComplexF64, ncol)
-    #   @test(norm(E * u - sum(u) * ones(nrow)) <= rtol * norm(u))
-    #   @test(norm(transpose(E) * v - sum(v) * ones(ncol)) <= rtol * norm(v))
-    #   @test(norm(E' * v - sum(v) * ones(ncol)) <= rtol * norm(v))
-    # end
+    @testset "Ones" begin
+      E = opOnes(nrow, ncol)
+      v = simple_vector(ComplexF64, nrow)
+      u = simple_vector(ComplexF64, ncol)
+      @test(norm(E * u - sum(u) * ones(nrow)) <= rtol * norm(u))
+      @test(norm(transpose(E) * v - sum(v) * ones(ncol)) <= rtol * norm(v))
+      @test(norm(E' * v - sum(v) * ones(ncol)) <= rtol * norm(v))
+    end
 
     @testset "Zeros" begin
       O = opZeros(nrow, ncol)

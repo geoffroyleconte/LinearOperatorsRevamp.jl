@@ -78,17 +78,20 @@ function mulOpOnes!(res, v, α, β)
 end
 
 """
+    opOnes(Mv, nrow, ncol)
     opOnes(T, nrow, ncol)
     opOnes(nrow, ncol)
 
-Operator of all ones of size `nrow`-by-`ncol` and of data type `T` (defaults to
-`Float64`).
+Operator of all ones of size `nrow`-by-`ncol` of data type `T` (defaults to
+`Float64`) and storage vector Mv.
 """
-function opOnes(T::DataType, nrow::Int, ncol::Int)
+function opOnes(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+  length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   prod! = @closure (res, v, α, β) -> mulOpOnes!(res, v, α, β)
-  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!)
+  LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
+opOnes(T::DataType, nrow::Int, ncol::Int) = opOnes(zeros(T, nrow), nrow, ncol)
 opOnes(nrow::Int, ncol::Int) = opOnes(Float64, nrow, ncol)
 
 function mulOpZeros!(res, v, α, β)

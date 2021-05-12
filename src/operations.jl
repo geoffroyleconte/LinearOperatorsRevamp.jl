@@ -101,7 +101,7 @@ end
 
 # Operator + operator.
 
-function sum_prod!(res::AbstractVector, op1::AbstractLinearOperator{T}, op2::AbstractLinearOperator{T}, v::AbstractVector, α, β) where T
+function sum_prod!(res::AbstractVector, op1::AbstractLinearOperator, op2::AbstractLinearOperator{T}, v::AbstractVector, α, β) where T
   mul!(res, op1, v, α, β)
   mul!(res, op2, v, α, one(T))
 end
@@ -140,8 +140,8 @@ end
 +(op::AbstractLinearOperator, M::AbstractMatrix) = op + LinearOperator(M)
 
 # # Operator .+ scalar.
-# +(op::AbstractLinearOperator, x::Number) = op + x * opOnes(op.nrow, op.ncol)
-# +(x::Number, op::AbstractLinearOperator) = x * opOnes(op.nrow, op.ncol) + op
++(op::AbstractLinearOperator, x::Number) = op + x * opOnes(op.nrow, op.ncol)
++(x::Number, op::AbstractLinearOperator) = x * opOnes(op.nrow, op.ncol) + op
 
 # Operator - operator
 -(op1::AbstractLinearOperator, op2::AbstractLinearOperator) = op1 + (-op2)
@@ -151,5 +151,5 @@ end
 -(op::AbstractLinearOperator, M::AbstractMatrix) = op - LinearOperator(M)
 
 # # Operator - scalar.
-# -(op::AbstractLinearOperator, x::Number) = op + (-x)
-# -(x::Number, op::AbstractLinearOperator) = x + (-op)
+-(op::AbstractLinearOperator, x::Number) = op + (-x)
+-(x::Number, op::AbstractLinearOperator) = x + (-op)
