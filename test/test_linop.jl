@@ -318,41 +318,41 @@ function test_linop()
       @test(norm(A' * u - D' * u) <= ϵ * norm(u))
     end
 
-    # @testset "posdef" begin
-    #   v = simple_vector(ComplexF64, nrow)
-    #   H = opHouseholder(v)
-    #   Λ = collect(eltype(v), 1:nrow)
-    #   op = H * opDiagonal(Λ) * H'
-    #   @test check_positive_definite(op)
-    #   @test check_positive_definite(op, semi = true)
-    #   Λ = collect(eltype(v), 0:(nrow - 1))
-    #   op = H * opDiagonal(Λ) * H'
-    #   @test check_positive_definite(op, semi = true)
-    #   A = Matrix(op)
-    #   @test check_positive_definite(A, semi = true)
-    # end
+    @testset "posdef" begin
+      v = simple_vector(ComplexF64, nrow)
+      H = opHouseholder(v)
+      Λ = collect(eltype(v), 1:nrow)
+      op = H * opDiagonal(Λ) * H'
+      @test check_positive_definite(op)
+      @test check_positive_definite(op, semi = true)
+      Λ = collect(eltype(v), 0:(nrow - 1))
+      op = H * opDiagonal(Λ) * H'
+      @test check_positive_definite(op, semi = true)
+      A = Matrix(op)
+      @test check_positive_definite(A, semi = true)
+    end
 
-    # @testset "Hermitian" begin
-    #   A = simple_matrix(ComplexF64, nrow, nrow)
-    #   d = real.(diag(A))
-    #   A = tril(A, -1)
-    #   C = A + A' + diagm(0 => d)
-    #   H = opHermitian(d, A)
-    #   v = simple_vector(ComplexF64, nrow)
-    #   @test(norm(H * v - C * v) <= rtol * norm(v))
-    #   @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
-    #   @test(norm(H' * v - C * v) <= rtol * norm(v))
+    @testset "Hermitian" begin
+      A = simple_matrix(ComplexF64, nrow, nrow)
+      d = real.(diag(A))
+      A = tril(A, -1)
+      C = A + A' + diagm(0 => d)
+      H = opHermitian(d, A)
+      v = simple_vector(ComplexF64, nrow)
+      @test(norm(H * v - C * v) <= rtol * norm(v))
+      @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
+      @test(norm(H' * v - C * v) <= rtol * norm(v))
 
-    #   @test(!check_hermitian(LinearOperator(A - A')))
-    #   @test(!check_positive_definite(LinearOperator(-A' * A)))
+      @test(!check_hermitian(LinearOperator(A - A')))
+      @test(!check_positive_definite(LinearOperator(-A' * A)))
 
-    #   C = simple_matrix(ComplexF64, nrow, nrow, symmetric = true)
-    #   H = opHermitian(C)
-    #   v = simple_vector(ComplexF64, nrow)
-    #   @test(norm(H * v - C * v) <= rtol * norm(v))
-    #   @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
-    #   @test(norm(H' * v - C * v) <= rtol * norm(v))
-    # end
+      C = simple_matrix(ComplexF64, nrow, nrow, symmetric = true)
+      H = opHermitian(C)
+      v = simple_vector(ComplexF64, nrow)
+      @test(norm(H * v - C * v) <= rtol * norm(v))
+      @test(norm(transpose(H) * v - transpose(C) * v) <= rtol * norm(v))
+      @test(norm(H' * v - C * v) <= rtol * norm(v))
+    end
 
     @testset "Transpose and adjoint" begin
       A = simple_matrix(ComplexF64, nrow, nrow)
@@ -453,14 +453,14 @@ function test_linop()
       @test(norm(LDL * (K * e) - e) < rtol * norm(e))
     end
 
-  #   @testset "Householder" begin
-  #     v = simple_vector(ComplexF64, nrow)
-  #     H = opHouseholder(v)
-  #     u = simple_vector(ComplexF64, nrow)
-  #     @test(norm(H * u - (u - 2 * dot(v, u) * v)) <= rtol * norm(u))
-  #     @test(norm(transpose(H) * u - (u - 2 * dot(conj(v), u) * conj(v))) <= rtol * norm(u))
-  #     @test(norm(H' * u - (u - 2 * dot(v, u) * v)) <= rtol * norm(u))
-  #   end
+    @testset "Householder" begin
+      v = simple_vector(ComplexF64, nrow)
+      H = opHouseholder(v)
+      u = simple_vector(ComplexF64, nrow)
+      @test(norm(H * u - (u - 2 * dot(v, u) * v)) <= rtol * norm(u))
+      @test(norm(transpose(H) * u - (u - 2 * dot(conj(v), u) * conj(v))) <= rtol * norm(u))
+      @test(norm(H' * u - (u - 2 * dot(v, u) * v)) <= rtol * norm(u))
+    end
   end
 
   @testset ExtendedTestSet "Inference" begin
@@ -480,11 +480,11 @@ function test_linop()
     op = LinearOperator(A)
     @test(check_ctranspose(A))
     @test(check_ctranspose(op))
-    # @test_throws LinearOperatorException opCholesky(A)  # Shape mismatch
+    @test_throws LinearOperatorException opCholesky(A)  # Shape mismatch
 
     A = simple_matrix(ComplexF64, 5, 5)
-    # @test_throws LinearOperatorException opCholesky(A, check = true)  # Not Hermitian / positive definite
-    # @test_throws LinearOperatorException opCholesky(-A' * A, check = true)  # Not positive definite
+    @test_throws LinearOperatorException opCholesky(A, check = true)  # Not Hermitian / positive definite
+    @test_throws LinearOperatorException opCholesky(-A' * A, check = true)  # Not positive definite
 
     # Adjoint of a symmetric non-hermitian
     A = simple_matrix(ComplexF64, 3, 3)

@@ -81,29 +81,47 @@ end
 
 opLDL(M::AbstractMatrix; check::Bool = false) = opLDL(zeros(size(M,1)), M; check = check)
 
-"""
-    opHouseholder(h)
-Apply a Householder transformation defined by the vector `h`.
-The result is `x -> (I - 2 h h') x`.
-"""
-function opHouseholder(h::AbstractVector{T}) where {T}
-  n = length(h)
-  prod = @closure v -> (v - 2 * dot(h, v) * h)  # tprod will be inferred
-  LinearOperator{T}(n, n, isreal(h), true, prod, nothing, prod)
+function mulHouseholder!(res, h, v, α, β)
+  res .= α .* (v .- 2 * dot(h, v) .* h) .+ β .* res
 end
 
 """
+    opHouseholder(Mv, Mtu, h)
+    opHouseholder(h)
+Apply a Householder transformation defined by the vector `h` with storage vectors Mv, Mtu.
+The result is `x -> (I - 2 h h') x`.
+"""
+function opHouseholder(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, h::AbstractVector{T}) where {T}
+  n = length(h)
+  prod! = @closure (res, v, α, β) -> mulHouseholder!(res, h, v, α, β)  # tprod will be inferred
+  LinearOperator{T}(n, n, isreal(h), true, prod!, nothing, prod!, Mv, Mtu, Mv)
+end
+
+function opHouseholder(h::AbstractVector{T}) where {T} 
+  Mv = similar(h, length(h))
+  Mtu = isreal(h) ? Mv : copy(Mv)
+  return opHouseholder(Mv, Mtu, h)
+end
+
+function mulHermitian(res, d, L, v,  α, β)
+  res .= α .* (d .* v .+ L * v .+ (v' * L)')[:] .+ β .* res
+end
+
+"""
+    opHermitian(Mv, d, A)
     opHermitian(d, A)
 A symmetric/hermitian operator based on the diagonal `d` and lower triangle of `A`.
 """
-function opHermitian(d::AbstractVector{S}, A::AbstractMatrix{T}) where {S, T}
+function opHermitian(Mv::AbstractVector{T}, d::AbstractVector{S}, A::AbstractMatrix{T}) where {S, T}
   m, n = size(A)
   m == n == length(d) || throw(LinearOperatorException("shape mismatch"))
   L = tril(A, -1)
   U = promote_type(S, T)
-  prod = @closure v -> (d .* v + L * v + (v' * L)')[:]
-  LinearOperator{U}(m, m, isreal(A), true, prod, nothing, nothing)
+  prod = @closure (res, v, α, β) -> mulHermitian(res, d, L, v, α, β)
+  LinearOperator{U}(m, m, isreal(A), true, prod, nothing, nothing, Mv, Mv, Mv)
 end
+
+opHermitian(d::AbstractVector{S}, A::AbstractMatrix{T}) where {S, T} = opHermitian(zeros(T, size(A, 1)), d, A)
 
 """
     opHermitian(A)
