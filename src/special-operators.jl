@@ -167,28 +167,36 @@ function opDiagonal(nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
   return opDiagonal(Mv, Mtu, Maw, nrow, ncol, d)
 end
 
+function mulRestrict!(res, I, v, α, β)
+  res .= v[I]
+end
+
+function multRestrict!(res, I, u, α, β)
+  res .= 0
+  res[I] = u
+end
+  
 """
+    Z = opRestriction(Mv, Mtu, I, ncol)
     Z = opRestriction(I, ncol)
     Z = opRestriction(:, ncol)
 
-Creates a LinearOperator restricting a `ncol`-sized vector to indices `I`.
+Creates a LinearOperator restricting a `ncol`-sized vector to indices `I` with storage Vectors `Mv`, `Mtu`.
 The operation `Z * v` is equivalent to `v[I]`. `I` can be `:`.
 
     Z = opRestriction(k, ncol)
 
 Alias for `opRestriction([k], ncol)`.
 """
-function opRestriction(I::LinearOperatorIndexType, ncol::Int)
+function opRestriction(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, I::LinearOperatorIndexType, ncol::Int) where {T}
   all(1 .≤ I .≤ ncol) || throw(LinearOperatorException("indices should be between 1 and $ncol"))
   nrow = length(I)
-  prod = @closure x -> x[I]
-  tprod = @closure x -> begin
-    z = zeros(eltype(x), ncol)
-    z[I] = x
-    return z
-  end
-  return LinearOperator{Int}(nrow, ncol, false, false, prod, tprod, tprod)
+  prod! = @closure (res, v, α, β) -> mulRestrict!(res, I, v, α, β)
+  tprod! = @closure (res, u, α, β) -> multRestrict!(res, I, u, α, β)
+  return LinearOperator{Int}(nrow, ncol, false, false, prod!, tprod!, tprod!, Mv, Mtu, Mtu)
 end
+
+opRestriction(I::LinearOperatorIndexType, ncol::Int) = opRestriction(zeros(length(I)), zeros(ncol), I, ncol)
 
 opRestriction(::Colon, ncol::Int) = opEye(Int, ncol)
 
@@ -228,6 +236,7 @@ end
 eltypeof(op::AbstractLinearOperator) = eltype(op)  # need this for promote_eltypeof
 
 """
+    BlockDiagonalOperator(Mv, Mtu, Maw, M1, M2, ..., Mn)
     BlockDiagonalOperator(M1, M2, ..., Mn)
 
 Creates a block-diagonal linear operator:
@@ -237,7 +246,7 @@ Creates a block-diagonal linear operator:
     [       ...    ]
     [           Mn ]
 """
-function BlockDiagonalOperator(ops...)
+function BlockDiagonalOperator(Mv::AbstractVector{S}, Mtu::AbstractVector{S}, Maw::AbstractVector{S}, ops...) where {S}
   nrow = ncol = 0
   for op ∈ ops
     m, n = size(op)
@@ -246,47 +255,66 @@ function BlockDiagonalOperator(ops...)
   end
   T = promote_eltypeof(ops...)
 
-  function prod(x)
-    y = zeros(T, nrow)
+  function prod!(y, x, α, β)
+    # y = zeros(T, nrow)
     k = 0
     j = 0
     for op ∈ ops
       m, n = size(op)
-      y[(k + 1):(k + m)] .= op * x[(j + 1):(j + n)]
+      # y[(k + 1):(k + m)] .= op * x[(j + 1):(j + n)] 
+      @views mul!(y[(k + 1):(k + m)] , op, x[(j + 1):(j + n)], α, β)
       k += m
       j += n
     end
-    y
+    # y
   end
 
-  function tprod(x)
-    y = zeros(T, ncol)
+  function tprod!(y, x, α, β)
+    # y = zeros(T, ncol)
     k = 0
     j = 0
     for op ∈ ops
       m, n = size(op)
-      y[(k + 1):(k + n)] .= transpose(op) * x[(j + 1):(j + m)]
+      # y[(k + 1):(k + n)] .= transpose(op) * x[(j + 1):(j + m)]
+      @views mul!(y[(k + 1):(k + n)], transpose(op), x[(j + 1):(j + m)], α, β)
       k += n
       j += m
     end
-    y
+    # y
   end
 
-  function ctprod(x)
-    y = zeros(T, ncol)
+  function ctprod!(y, x, α, β)
+    # y = zeros(T, ncol)
     k = 0
     j = 0
     for op ∈ ops
       m, n = size(op)
-      y[(k + 1):(k + n)] .= op' * x[(j + 1):(j + m)]
+      # y[(k + 1):(k + n)] .= op' * x[(j + 1):(j + m)]
+      @views mul!(y[(k + 1):(k + n)], adjoint(op), x[(j + 1):(j + m)], α, β)
       k += n
       j += m
     end
-    y
+    # y
   end
 
-  symmetric = all((issymmetric(op) for op ∈ ops))
-  hermitian = all((ishermitian(op) for op ∈ ops))
-
-  LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod, tprod, ctprod)
+  symm = all((issymmetric(op) for op ∈ ops))
+  herm = all((ishermitian(op) for op ∈ ops))
+  LinearOperator{T}(nrow, ncol, symm, herm, prod!, tprod!, ctprod!, Mv, Mtu, Maw)
 end
+
+function BlockDiagonalOperator(ops...)
+  nrow = ncol = 0
+  for op ∈ ops
+    m, n = size(op)
+    nrow += m
+    ncol += n
+  end
+  T = promote_eltypeof(ops...)
+  symm = all((issymmetric(op) for op ∈ ops))
+  herm = all((ishermitian(op) for op ∈ ops))
+  Mv = zeros(T, nrow)
+  Mtu = symm ? Mv : zeros(T, ncol)
+  Maw = herm ? Mv : zeros(T, ncol)
+  return BlockDiagonalOperator(Mv, Mtu, Maw, ops...)
+end
+

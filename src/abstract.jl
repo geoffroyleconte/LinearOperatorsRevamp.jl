@@ -69,10 +69,10 @@ LinearOperator{T}(
   prod!,
   tprod!,
   ctprod!,
-  Mv::AbstractVector{T},
-  Mtu::AbstractVector{T},
-  Maw::AbstractVector{T}
-) where {T} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw, 0, 0, 0)
+  Mv::S,
+  Mtu::S,
+  Maw::S
+) where {T,S} = LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw, 0, 0, 0)
 
 nprod(op::AbstractLinearOperator) = op.nprod
 ntprod(op::AbstractLinearOperator) = op.ntprod

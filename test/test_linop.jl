@@ -389,32 +389,32 @@ function test_linop()
       @test check_positive_definite(op * op')
     end
 
-    # @testset "Restriction and Extension" begin
-    #   n = 10
-    #   J = [1; 2; 4; 7]
-    #   r = 3:6
-    #   s = 1:2:7
-    #   k = 4
-    #   v = simple_vector(Float64, nrow)
+    @testset "Restriction and Extension" begin
+      n = 10
+      J = [1; 2; 4; 7]
+      r = 3:6
+      s = 1:2:7
+      k = 4
+      v = simple_vector(Float64, nrow)
 
-    #   for idx in (J, r, s, Colon(), k)
-    #     P = opRestriction(idx, n)
-    #     Z = opExtension(idx, n)
+      for idx in (J, r, s, Colon(), k)
+        P = opRestriction(idx, n)
+        Z = opExtension(idx, n)
 
-    #     # 1d slices are different; in Julia, v[idx] is a scalar
-    #     w = v[idx]
-    #     typeof(idx) <: Number && (w = [w])
-    #     vz = zeros(n)
-    #     vz[idx] = v[idx]
+        # 1d slices are different; in Julia, v[idx] is a scalar
+        w = v[idx]
+        typeof(idx) <: Number && (w = [w])
+        vz = zeros(n)
+        vz[idx] = v[idx]
 
-    #     @test P * v == w
-    #     @test P' * w == vz
-    #     @test Z * w == vz
-    #     @test Z' * v == w
-    #     @test (P * Z) * w == w
-    #     @test (Z * P) * v == vz
-    #   end
-    # end
+        @test P * v == w
+        @test P' * w == vz
+        @test Z * w == vz
+        @test Z' * v == w
+        @test (P * Z) * w == w
+        @test (Z * P) * v == vz
+      end
+    end
   end
 
   # @testset ExtendedTestSet "Linear system operators" begin
@@ -668,22 +668,22 @@ function test_linop()
     @test all(top * v .== transpose(top3) * v)
   end
 
-  # @testset ExtendedTestSet "BlockDiagonal" begin
-  #   A = rand(3, 4) + im * rand(3, 4)
-  #   B = rand(3, 3) + im * rand(3, 3)
-  #   C = rand(4, 2) + im * rand(4, 2)
-  #   D = [
-  #     A zeros(3, 3) zeros(3, 2)
-  #     zeros(3, 4) B zeros(3, 2)
-  #     zeros(4, 4) zeros(4, 3) C
-  #   ]
-  #   M = BlockDiagonalOperator(LinearOperator.((A, B, C))...)
-  #   @test size(M, 1) == size(A, 1) + size(B, 1) + size(C, 1)
-  #   @test size(M, 2) == size(A, 2) + size(B, 2) + size(C, 2)
-  #   @test norm(Matrix(M) - D) ≤ sqrt(eps()) * norm(D)
-  #   @test norm(Matrix(transpose(M)) - transpose(D)) ≤ sqrt(eps()) * norm(D)
-  #   @test norm(Matrix(M') - D') ≤ sqrt(eps()) * norm(D)
-  # end
+  @testset ExtendedTestSet "BlockDiagonal" begin
+    A = rand(3, 4) + im * rand(3, 4)
+    B = rand(3, 3) + im * rand(3, 3)
+    C = rand(4, 2) + im * rand(4, 2)
+    D = [
+      A zeros(3, 3) zeros(3, 2)
+      zeros(3, 4) B zeros(3, 2)
+      zeros(4, 4) zeros(4, 3) C
+    ]
+    M = BlockDiagonalOperator(LinearOperator.((A, B, C))...)
+    @test size(M, 1) == size(A, 1) + size(B, 1) + size(C, 1)
+    @test size(M, 2) == size(A, 2) + size(B, 2) + size(C, 2)
+    @test norm(Matrix(M) - D) ≤ sqrt(eps()) * norm(D)
+    @test norm(Matrix(transpose(M)) - transpose(D)) ≤ sqrt(eps()) * norm(D)
+    @test norm(Matrix(M') - D') ≤ sqrt(eps()) * norm(D)
+  end
 
   # Issue #139
   @testset ExtendedTestSet "Matrix-vector products with SparseMatrix and SparseVector" begin
