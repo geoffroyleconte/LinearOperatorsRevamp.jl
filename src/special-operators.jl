@@ -107,6 +107,7 @@ Zero operator of size `nrow`-by-`ncol`, of data type `T` (defaults to
 `Float64`) and storage vector Mv.
 """
 function opZeros(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+  length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   prod! = @closure (res, v, α, β) -> mulOpZeros!(res, v, α, β)
   LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!, Mv, Mv, Mv)
 end
@@ -114,37 +115,56 @@ end
 opZeros(T::DataType, nrow::Int, ncol::Int) = opZeros(zeros(T, nrow), nrow, ncol)
 opZeros(nrow::Int, ncol::Int) = opZeros(Float64, nrow, ncol)
 
-###############
+function mulSquareOpDiagonal!(res, d, v, α, β)
+  res .= α .* d .* v .+ β .* res 
+end
+
 """
+    opDiagonal(Mv, Maw, d)
     opDiagonal(d)
 
-Diagonal operator with the vector `d` on its main diagonal.
+Diagonal operator with the vector `d` on its main diagonal and storage vectors `Mv` and `Maw`.
 """
+function opDiagonal(Mv::AbstractVector{T}, Maw::AbstractVector{T}, d::AbstractVector{T}) where {T}
+  prod! = @closure (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β)
+  ctprod! = @closure (res, w, α, β) -> mulSquareOpDiagonal!(res, conj.(d), w, α, β)
+  LinearOperator{T}(length(d), length(d), true, isreal(d), prod!, prod!, ctprod!, Mv, Mv, Maw)
+end
+
 function opDiagonal(d::AbstractVector{T}) where {T}
-  prod! = @closure v -> v .* d
-  ctprod! = @closure w -> w .* conj(d)
-  LinearOperator{T}(length(d), length(d), true, isreal(d), prod!, prod!, ctprod!)
+  nrow = length(d)
+  Mv = zeros(T, nrow)
+  Maw = isreal(d) ? Mv : zeros(T, nrow) 
+  return opDiagonal(Mv, Maw, d)
 end
 
 #TODO: not type stable
+function mulOpDiagonal!(res, d, v, α, β, n_min)
+  res[1:n_min] .= @views α .* d[1:n_min] .* v[1:n_min] .+ β .* res[1:n_min]
+  res[n_min+1:end] .= 0
+end
 """
+    opDiagonal(Mv, Mtu, Maw, nrow, ncol, d)
     opDiagonal(nrow, ncol, d)
 
 Rectangular diagonal operator of size `nrow`-by-`ncol` with the vector `d` on
-its main diagonal.
+its main diagonal and storage vectors `Mv`, `Mtu`, `Maw`.
 """
-function opDiagonal(nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
+function opDiagonal(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, Maw::AbstractVector{T}, 
+                    nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
   nrow == ncol <= length(d) && (return opDiagonal(d[1:nrow]))
-  if nrow > ncol
-    prod = @closure v -> [v .* d; zeros(nrow - ncol)]
-    tprod = @closure u -> u[1:ncol] .* d
-    ctprod = @closure w -> w[1:ncol] .* conj(d)
-  else
-    prod = @closure v -> v[1:nrow] .* d
-    tprod = @closure u -> [u .* d; zeros(ncol - nrow)]
-    ctprod = @closure w -> [w .* conj(d); zeros(ncol - nrow)]
-  end
-  LinearOperator{T}(nrow, ncol, false, false, prod, tprod, ctprod)
+  n_min = min(nrow, ncol)
+  prod! = @closure (res, v, α, β) -> mulOpDiagonal!(res, d, v, α, β, n_min)
+  tprod! = @closure (res, u, α, β) -> mulOpDiagonal!(res, d, u, α, β, n_min)
+  ctprod! = @closure (res, w, α, β) -> mulOpDiagonal!(res, conj.(d), w, α, β, n_min)
+  LinearOperator{T}(nrow, ncol, false, false, prod!, tprod!, ctprod!, Mv, Mtu, Maw)
+end
+
+function opDiagonal(nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
+  Mv = zeros(T, nrow)
+  Mtu = zeros(T, ncol)
+  Maw = isreal(d) ? Mtu : zeros(T, ncol) 
+  return opDiagonal(Mv, Mtu, Maw, nrow, ncol, d)
 end
 
 """

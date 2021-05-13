@@ -284,39 +284,39 @@ function test_linop()
       @test(norm(O' * v) <= ϵ)
     end
 
-    # @testset "Diagonal" begin
-    #   v = simple_vector(ComplexF64, nrow)
-    #   D = opDiagonal(v)
-    #   u = simple_vector(ComplexF64, nrow)
-    #   @test(norm(D * u - v .* u) <= ϵ * norm(u))
-    #   @test(norm(transpose(D) * u - v .* u) <= ϵ * norm(u))
-    #   @test(norm(D' * u - conj(v) .* u) <= ϵ * norm(u))
-    # end
+    @testset "Diagonal" begin
+      v = simple_vector(ComplexF64, nrow)
+      D = opDiagonal(v)
+      u = simple_vector(ComplexF64, nrow)
+      @test(norm(D * u - v .* u) <= ϵ * norm(u))
+      @test(norm(transpose(D) * u - v .* u) <= ϵ * norm(u))
+      @test(norm(D' * u - conj(v) .* u) <= ϵ * norm(u))
+    end
 
-    # @testset "Rectangular diagonal" begin
-    #   nmin = min(nrow, ncol)
-    #   nmax = max(nrow, ncol)
-    #   A = zeros(ComplexF64, nmax, nmin)
-    #   v = simple_vector(ComplexF64, nmin)
-    #   for i = 1:nmin
-    #     A[i, i] = v[i]
-    #   end
-    #   D = opDiagonal(nmax, nmin, v)
-    #   u = simple_vector(ComplexF64, nmin)
-    #   @test(norm(A * u - D * u) <= ϵ * norm(u))
-    #   w = simple_vector(ComplexF64, nmax)
-    #   @test(norm(transpose(A) * w - transpose(D) * w) <= ϵ * norm(w))
-    #   @test(norm(A' * w - D' * w) <= ϵ * norm(w))
+    @testset "Rectangular diagonal" begin
+      nmin = min(nrow, ncol)
+      nmax = max(nrow, ncol)
+      A = zeros(ComplexF64, nmax, nmin)
+      v = simple_vector(ComplexF64, nmin)
+      for i = 1:nmin
+        A[i, i] = v[i]
+      end
+      D = opDiagonal(nmax, nmin, v)
+      u = simple_vector(ComplexF64, nmin)
+      @test(norm(A * u - D * u) <= ϵ * norm(u))
+      w = simple_vector(ComplexF64, nmax)
+      @test(norm(transpose(A) * w - transpose(D) * w) <= ϵ * norm(w))
+      @test(norm(A' * w - D' * w) <= ϵ * norm(w))
 
-    #   A = zeros(ComplexF64, nmin, nmax)
-    #   for i = 1:nmin
-    #     A[i, i] = v[i]
-    #   end
-    #   D = opDiagonal(nmin, nmax, v)
-    #   @test(norm(A * w - D * w) <= ϵ * norm(w))
-    #   @test(norm(transpose(A) * u - transpose(D) * u) <= ϵ * norm(u))
-    #   @test(norm(A' * u - D' * u) <= ϵ * norm(u))
-    # end
+      A = zeros(ComplexF64, nmin, nmax)
+      for i = 1:nmin
+        A[i, i] = v[i]
+      end
+      D = opDiagonal(nmin, nmax, v)
+      @test(norm(A * w - D * w) <= ϵ * norm(w))
+      @test(norm(transpose(A) * u - transpose(D) * u) <= ϵ * norm(u))
+      @test(norm(A' * u - D' * u) <= ϵ * norm(u))
+    end
 
     # @testset "posdef" begin
     #   v = simple_vector(ComplexF64, nrow)
