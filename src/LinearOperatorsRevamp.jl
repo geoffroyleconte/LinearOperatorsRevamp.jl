@@ -13,7 +13,7 @@ include("cat.jl")
 include("kron.jl")
 
 # quasi-Newton operators
-# include("qn.jl")
+include("qn.jl")
 
 # Special operators
 include("linalg.jl")
