@@ -94,12 +94,12 @@ function InverseLBFGSOperator(T::DataType, n::Int; kwargs...)
   delete!(kwargs, :inverse)
   lbfgs_data = LBFGSData(T, n; inverse = true, kwargs...)
 
-  function lbfgs_multiply(q::AbstractVector, data::LBFGSData, x::AbstractArray, α, β)
+  function lbfgs_multiply(q::AbstractVector, data::LBFGSData, x::AbstractArray, αm, βm)
     # Multiply operator with a vector.
     # See, e.g., Nocedal & Wright, 2nd ed., Procedure 7.4, p. 178.
 
     # q = data.Ax
-    q .= x
+    q .= αm .* x
 
     for i = 1:(data.mem)
       k = mod(data.insert - i - 1, data.mem) + 1
@@ -107,7 +107,7 @@ function InverseLBFGSOperator(T::DataType, n::Int; kwargs...)
         αk = dot(data.s[k], q) / data.ys[k]
         data.α[k] = αk
         for j ∈ eachindex(q)
-          q[j] -= αk * data.y[k][j]
+          q[j] -= αm * αk * data.y[k][j]
         end
       end
     end
@@ -120,7 +120,7 @@ function InverseLBFGSOperator(T::DataType, n::Int; kwargs...)
         αk = data.α[k]
         β = αk - dot(data.y[k], q) / data.ys[k]
         for j ∈ eachindex(q)
-          q[j] += β * data.s[k][j]
+          q[j] += αm * β * data.s[k][j]
         end
       end
     end
@@ -128,7 +128,8 @@ function InverseLBFGSOperator(T::DataType, n::Int; kwargs...)
   end
 
   prod! = @closure (res, x, α, β) -> lbfgs_multiply(res, lbfgs_data, x, α, β)
-  return LBFGSOperator{T}(n, n, true, true, prod!, prod!, prod!, lbfgs_data.Ax, lbfgs_data.Ax, lbfgs_data.Ax, true, lbfgs_data)
+  Mv = similar(lbfgs_data.Ax)
+  return LBFGSOperator{T}(n, n, true, true, prod!, prod!, prod!, Mv, Mv, Mv, true, lbfgs_data)
 end
 
 InverseLBFGSOperator(n::Int; kwargs...) = InverseLBFGSOperator(Float64, n; kwargs...)
@@ -215,7 +216,6 @@ function push!(op::LBFGSOperator, s::Vector, y::Vector, α::Real = 1.0, g::Vecto
   data.s[insert] .= s
   data.y[insert] .= y
   data.ys[insert] = ys
-
   op.data.scaling && (op.data.scaling_factor = ys / dot(y, y))
 
   # Update arrays a and b used in forward products.
