@@ -24,6 +24,6 @@ include("TimedOperators.jl")
 # Utilities
 include("utilities.jl")
 
-# include("deprecated.jl")
+include("deprecated.jl")
 
 end # module
