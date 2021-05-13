@@ -417,41 +417,41 @@ function test_linop()
     end
   end
 
-  # @testset ExtendedTestSet "Linear system operators" begin
-  #   A = simple_matrix(ComplexF64, nrow, nrow)
-  #   v = simple_vector(Float64, nrow)
+  @testset ExtendedTestSet "Linear system operators" begin
+    A = simple_matrix(ComplexF64, nrow, nrow)
+    v = simple_vector(Float64, nrow)
 
-  #   @testset "Inverse" begin
-  #     Ainv = opInverse(A)
-  #     @test(norm(A \ v - Ainv * v) <= rtol * norm(v))
-  #     @test(norm(transpose(A) \ v - transpose(Ainv) * v) <= rtol * norm(v))
-  #     @test(norm(A' \ v - Ainv' * v) <= rtol * norm(v))
-  #   end
+    @testset "Inverse" begin
+      Ainv = opInverse(A)
+      @test(norm(A \ v - Ainv * v) <= rtol * norm(v))
+      @test(norm(transpose(A) \ v - transpose(Ainv) * v) <= rtol * norm(v))
+      @test(norm(A' \ v - Ainv' * v) <= rtol * norm(v))
+    end
 
-  #   @testset "Cholesky and LDL" begin
-  #     B = A' * A
-  #     Binv = opCholesky(B)  #, check=true);
-  #     @test(norm(B \ v - Binv * v) <= rtol * norm(v))
-  #     @test(norm(transpose(B) \ v - transpose(Binv) * v) <= rtol * norm(v))
-  #     @test(norm(B' \ v - Binv' * v) <= rtol * norm(v))
+    @testset "Cholesky and LDL" begin
+      B = A' * A
+      Binv = opCholesky(B)  #, check=true);
+      @test(norm(B \ v - Binv * v) <= rtol * norm(v))
+      @test(norm(transpose(B) \ v - transpose(Binv) * v) <= rtol * norm(v))
+      @test(norm(B' \ v - Binv' * v) <= rtol * norm(v))
 
-  #     @test_throws LinearOperatorException opCholesky(simple_matrix(Float64, 3, 5))
-  #     @test_throws LinearOperatorException opCholesky(simple_matrix(Float64, 5, 5), check = true)
+      @test_throws LinearOperatorException opCholesky(simple_matrix(Float64, 3, 5))
+      @test_throws LinearOperatorException opCholesky(simple_matrix(Float64, 5, 5), check = true)
 
-  #     # Test Cholesky operator on SQD matrix.
-  #     A = simple_matrix(Float64, 3, 3, symmetric = true)
-  #     B = simple_matrix(Float64, 2, 3)
-  #     C = simple_matrix(Float64, 2, 2, symmetric = true)
-  #     K = Symmetric([A B'; B -C])
+      # Test Cholesky operator on SQD matrix.
+      A = simple_matrix(Float64, 3, 3, symmetric = true)
+      B = simple_matrix(Float64, 2, 3)
+      C = simple_matrix(Float64, 2, 2, symmetric = true)
+      K = Symmetric([A B'; B -C])
 
-  #     # Dense Cholesky should throw an exception.
-  #     @test_throws LinearAlgebra.PosDefException opCholesky(K)
+      # Dense Cholesky should throw an exception.
+      @test_throws LinearAlgebra.PosDefException opCholesky(K)
 
-  #     # Compute the LDL' factorization.
-  #     LDL = opLDL(sparse(K))
-  #     e = ones(size(K, 1))
-  #     @test(norm(LDL * (K * e) - e) < rtol * norm(e))
-  #   end
+      # Compute the LDL' factorization.
+      LDL = opLDL(sparse(K))
+      e = ones(size(K, 1))
+      @test(norm(LDL * (K * e) - e) < rtol * norm(e))
+    end
 
   #   @testset "Householder" begin
   #     v = simple_vector(ComplexF64, nrow)
@@ -461,7 +461,7 @@ function test_linop()
   #     @test(norm(transpose(H) * u - (u - 2 * dot(conj(v), u) * conj(v))) <= rtol * norm(u))
   #     @test(norm(H' * u - (u - 2 * dot(v, u) * v)) <= rtol * norm(u))
   #   end
-  # end
+  end
 
   @testset ExtendedTestSet "Inference" begin
     function test_func(res)
