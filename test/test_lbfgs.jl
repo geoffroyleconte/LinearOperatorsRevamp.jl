@@ -104,7 +104,7 @@ function test_lbfgs()
       y = simple_vector(Float64, n)
       ys = dot(y, s)
       g = simple_vector(Float64, n)
-      d = -(H * g)
+      d = -(H * g) # added brackets here
       α = i / mem
       s = α * d
       if ys > 0.2 * dot(s, B * s)

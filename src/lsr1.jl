@@ -80,9 +80,9 @@ function LSR1Operator(T::DataType, n::Int; kwargs...)
     # Multiply operator with a vector.
 
     # q = data.Ax
-    q .= α .* x
+    q .= α .* x ./ data.scaling_factor .+ β .* q
 
-    data.scaling && (q ./= data.scaling_factor)  # q = B₀ * x
+    # data.scaling && (q ./= data.scaling_factor)  # q = B₀ * x
 
     for i = 1:(data.mem)
       k = mod(data.insert + i - 2, data.mem) + 1
