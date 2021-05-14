@@ -18,9 +18,9 @@ function LinearOperator(
   @assert length(Mv) == nrow
   @assert length(Mtu) == ncol
   @assert length(Maw) == ncol
-  prod! = @closure (Mv, v, α, β) -> mul!(Mv, M, v, α, β)
-  tprod! = @closure (Mtu, u, α, β) -> mul!(Mtu, transpose(M), u, α, β)
-  ctprod! = @closure (Maw, w, α, β) -> mul!(Maw, adjoint(M), w, α, β)
+  prod! = @closure (res, v, α, β) -> mul!(res, M, v, α, β)
+  tprod! = @closure (res, u, α, β) -> mul!(res, transpose(M), u, α, β)
+  ctprod! = @closure (res, w, α, β) -> mul!(res, adjoint(M), w, α, β)
   LinearOperator{T}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw)
 end
 
