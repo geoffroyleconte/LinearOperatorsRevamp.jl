@@ -32,9 +32,14 @@ function show(io::IO, op::opEye)
   println(io, "Identity operator")
 end
 
-function mulOpEye!(res, v, α, β, n_min)
-  res[1:n_min] .= @views α .* v[1:n_min] .+ β .* res[1:n_min]
-  res[n_min+1:end] .= 0
+function mulOpEye!(res, v, α, β::T, n_min) where T
+  if β != zero(T)
+    res[1:n_min] .= @views α .* v[1:n_min] .+ β .* res[1:n_min]
+    res[n_min+1:end] .= β
+  else
+    res[1:n_min] .= @views α .* v[1:n_min]
+    res[n_min+1:end] .= 0 
+  end
 end
 
 """
@@ -73,8 +78,12 @@ end
 opEye(T::DataType, nrow::I, ncol::I) where {I<:Integer} =  opEye(zeros(T, nrow), nrow, ncol)
 opEye(nrow::I, ncol::I) where {I<:Integer} = opEye(Float64, nrow, ncol)
 
-function mulOpOnes!(res, v, α, β)
-  res .= (α * sum(v)) .+ β .* res
+function mulOpOnes!(res, v, α, β::T) where T
+  if β != zero(T)
+    res .= (α * sum(v)) .+ β .* res
+  else
+    res .= (α * sum(v))
+  end
 end
 
 """
@@ -94,8 +103,10 @@ end
 opOnes(T::DataType, nrow::I, ncol::I) where {I<:Integer} = opOnes(zeros(T, nrow), nrow, ncol)
 opOnes(nrow::I, ncol::I) where {I<:Integer} = opOnes(Float64, nrow, ncol)
 
-function mulOpZeros!(res, v, α, β)
-  res .*= β 
+function mulOpZeros!(res, v, α, β::T) where T
+  if β != zero(T)
+    res .*= β
+  end 
 end
 
 """
@@ -115,8 +126,12 @@ end
 opZeros(T::DataType, nrow::I, ncol::I) where {I<:Integer} = opZeros(zeros(T, nrow), nrow, ncol)
 opZeros(nrow::I, ncol::I) where {I<:Integer} = opZeros(Float64, nrow, ncol)
 
-function mulSquareOpDiagonal!(res, d, v, α, β)
-  res .= α .* d .* v .+ β .* res 
+function mulSquareOpDiagonal!(res, d, v, α, β::T) where T
+  if β != zero(T)
+    res .= α .* d .* v .+ β .* res 
+  else
+    res .= α .* d .* v 
+  end
 end
 
 """

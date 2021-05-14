@@ -94,12 +94,13 @@ function InverseLBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
   delete!(kwargs, :inverse)
   lbfgs_data = LBFGSData(T, n; inverse = true, kwargs...)
 
-  function lbfgs_multiply(q::AbstractVector, data::LBFGSData, x::AbstractArray, αm, βm)
+  function lbfgs_multiply(res::AbstractVector, data::LBFGSData, x::AbstractArray, αm, βm)
     # Multiply operator with a vector.
     # See, e.g., Nocedal & Wright, 2nd ed., Procedure 7.4, p. 178.
 
-    # q = data.Ax
-    q .= αm .* x
+    q = data.Ax # tmp vector
+    q .= x
+    # q .= αm .* x
 
     for i = 1:(data.mem)
       k = mod(data.insert - i - 1, data.mem) + 1
@@ -107,7 +108,7 @@ function InverseLBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
         αk = dot(data.s[k], q) / data.ys[k]
         data.α[k] = αk
         for j ∈ eachindex(q)
-          q[j] -= αm * αk * data.y[k][j]
+          q[j] -= αk * data.y[k][j]
         end
       end
     end
@@ -120,11 +121,15 @@ function InverseLBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
         αk = data.α[k]
         β = αk - dot(data.y[k], q) / data.ys[k]
         for j ∈ eachindex(q)
-          q[j] += αm * β * data.s[k][j]
+          q[j] += β * data.s[k][j]
         end
       end
     end
-
+    if βm != zero(T)
+      res .= αm .* q .+ βm .* res
+    else
+      res .= αm .* q
+    end
   end
 
   prod! = @closure (res, x, α, β) -> lbfgs_multiply(res, lbfgs_data, x, α, β)
@@ -145,11 +150,11 @@ function LBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
   delete!(kwargs, :inverse)
   lbfgs_data = LBFGSData(T, n; inverse = false, kwargs...)
 
-  function lbfgs_multiply(q::AbstractVector, data::LBFGSData, x::AbstractArray, α, β)
+  function lbfgs_multiply(res::AbstractVector, data::LBFGSData, x::AbstractArray, α, β)
     # Multiply operator with a vector.
     # See, e.g., Nocedal & Wright, 2nd ed., Procedure 7.6, p. 184.
 
-    # q = data.Ax
+    q = data.Ax
     q .= x
 
     data.scaling && (q ./= data.scaling_factor)
@@ -165,10 +170,16 @@ function LBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
         end
       end
     end
+    if β != zero(T)
+      res .= α .* q .+ β .* res
+    else
+      res .= α .* q
+    end
   end
 
   prod! = @closure (res, x, α, β) -> lbfgs_multiply(res, lbfgs_data, x, α, β)
-  return LBFGSOperator{T}(n, n, true, true, prod!, prod!, prod!, lbfgs_data.Ax, lbfgs_data.Ax, lbfgs_data.Ax, false, lbfgs_data)
+  Mv = similar(lbfgs_data.Ax)
+  return LBFGSOperator{T}(n, n, true, true, prod!, prod!, prod!, Mv, Mv, Mv, false, lbfgs_data)
 end
 
 LBFGSOperator(n::I; kwargs...) where {I<:Integer} = LBFGSOperator(Float64, n; kwargs...)
@@ -304,10 +315,3 @@ function reset!(op::LBFGSOperator)
   op.nctprod = 0
   return op
 end
-
-# define mul! so we can call, e.g., Arpack
-# function mul!(y::AbstractVector, op::LBFGSOperator, x::AbstractVector)
-#   op.prod(x)
-#   y .= op.data.Ax
-#   return y
-# end
