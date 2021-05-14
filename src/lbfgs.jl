@@ -1,8 +1,8 @@
 export LBFGSOperator, InverseLBFGSOperator, diag, diag!
 
 "A data type to hold information relative to LBFGS operators."
-mutable struct LBFGSData{T}
-  mem::Int
+mutable struct LBFGSData{T,I<:Integer}
+  mem::I
   scaling::Bool
   scaling_factor::T
   damped::Bool
@@ -14,21 +14,21 @@ mutable struct LBFGSData{T}
   α::Vector{T}
   a::Vector{Vector{T}}
   b::Vector{Vector{T}}
-  insert::Int
+  insert::I
   Ax::Vector{T}
 end
 
 function LBFGSData(
   T::DataType,
-  n::Int;
-  mem::Int = 5,
+  n::I;
+  mem::I = 5,
   scaling::Bool = true,
   damped::Bool = false,
   inverse::Bool = true,
   σ₂::Float64 = 0.99,
   σ₃::Float64 = 10.0,
-)
-  LBFGSData{T}(
+) where {I<:Integer}
+  LBFGSData{T,I}(
     max(mem, 1),
     scaling,
     convert(T, 1),
@@ -46,12 +46,12 @@ function LBFGSData(
   )
 end
 
-LBFGSData(n::Int; kwargs...) = LBFGSData(Float64, n; kwargs...)
+LBFGSData(n::I; kwargs...) where {I<:Integer} = LBFGSData(Float64, n; kwargs...)
 
 "A type for limited-memory BFGS approximations."
-mutable struct LBFGSOperator{T,S,F,Ft,Fct} <: AbstractLinearOperator{T}
-  nrow::Int
-  ncol::Int
+mutable struct LBFGSOperator{T,S,I<:Integer,F,Ft,Fct} <: AbstractLinearOperator{T}
+  nrow::I
+  ncol::I
   symmetric::Bool
   hermitian::Bool
   prod!::F    # apply the operator to a vector
@@ -61,15 +61,15 @@ mutable struct LBFGSOperator{T,S,F,Ft,Fct} <: AbstractLinearOperator{T}
   Mtu::S # storage vector for tprod!
   Maw::S # storage vector for ctprod!
   inverse::Bool
-  data::LBFGSData{T}
-  nprod::Int
-  ntprod::Int
-  nctprod::Int
+  data::LBFGSData{T,I}
+  nprod::I
+  ntprod::I
+  nctprod::I
 end
 
 LBFGSOperator{T}(
-  nrow::Int,
-  ncol::Int,
+  nrow::I,
+  ncol::I,
   symmetric::Bool,
   hermitian::Bool,
   prod!::F,
@@ -79,9 +79,9 @@ LBFGSOperator{T}(
   Mtu::S,
   Maw::S,
   inverse::Bool,
-  data::LBFGSData{T},
-) where {T,S, F, Ft, Fct} =
-  LBFGSOperator{T,S,F,Ft,Fct}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw, inverse, data, 0, 0, 0)
+  data::LBFGSData{T,I},
+) where {T,S,I<:Integer,F,Ft,Fct} =
+  LBFGSOperator{T,S,I,F,Ft,Fct}(nrow, ncol, symmetric, hermitian, prod!, tprod!, ctprod!, Mv, Mtu, Maw, inverse, data, 0, 0, 0)
 
 """
     InverseLBFGSOperator(T, n, [mem=5; scaling=true])
@@ -89,7 +89,7 @@ LBFGSOperator{T}(
 Construct a limited-memory BFGS approximation in inverse form. If the type `T`
 is omitted, then `Float64` is used.
 """
-function InverseLBFGSOperator(T::DataType, n::Int; kwargs...)
+function InverseLBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
   kwargs = Dict(kwargs)
   delete!(kwargs, :inverse)
   lbfgs_data = LBFGSData(T, n; inverse = true, kwargs...)
@@ -140,7 +140,7 @@ InverseLBFGSOperator(n::Int; kwargs...) = InverseLBFGSOperator(Float64, n; kwarg
 Construct a limited-memory BFGS approximation in forward form. If the type `T`
 is omitted, then `Float64` is used.
 """
-function LBFGSOperator(T::DataType, n::Int; kwargs...)
+function LBFGSOperator(T::DataType, n::I; kwargs...) where {I<:Integer}
   kwargs = Dict(kwargs)
   delete!(kwargs, :inverse)
   lbfgs_data = LBFGSData(T, n; inverse = false, kwargs...)
@@ -171,7 +171,7 @@ function LBFGSOperator(T::DataType, n::Int; kwargs...)
   return LBFGSOperator{T}(n, n, true, true, prod!, prod!, prod!, lbfgs_data.Ax, lbfgs_data.Ax, lbfgs_data.Ax, false, lbfgs_data)
 end
 
-LBFGSOperator(n::Int; kwargs...) = LBFGSOperator(Float64, n; kwargs...)
+LBFGSOperator(n::I; kwargs...) where {I<:Integer} = LBFGSOperator(Float64, n; kwargs...)
 
 """
     push!(op, s, y)
@@ -277,7 +277,7 @@ end
     reset!(data)
 Resets the given LBFGS data.
 """
-function reset!(data::LBFGSData{T}, inverse::Bool) where {T}
+function reset!(data::LBFGSData{T,I}, inverse::Bool) where {T,I<:Integer}
   for i = 1:(data.mem)
     fill!(data.s[i], 0)
     fill!(data.y[i], 0)

@@ -118,14 +118,14 @@ end
 Construct a linear operator from functions.
 """
 function LinearOperator(
-  nrow::Int,
-  ncol::Int,
+  nrow::I,
+  ncol::I,
   symmetric::Bool,
   hermitian::Bool,
   prod,
   tprod = nothing,
   ctprod = nothing,
-)
+) where {I<:Integer}
   T = hermitian ? (symmetric ? Float64 : ComplexF64) : ComplexF64
   Mv = Vector{T}(undef, nrow)
   Mtu = symmetric ? Mv : Vector{T}(undef, ncol)
@@ -150,14 +150,14 @@ contents of the complex matrix `A`.
 """
 function LinearOperator(
   ::Type{T},
-  nrow::Int,
-  ncol::Int,
+  nrow::I,
+  ncol::I,
   symmetric::Bool,
   hermitian::Bool,
   prod,
   tprod = nothing,
   ctprod = nothing,
-) where {T}
+) where {T, I<:Integer}
   Mv = zeros(T, nrow)
   Mtu = symmetric ? Mv : Vector{T}(undef, ncol)
   Maw = hermitian ? Mv : Vector{T}(undef, ncol)

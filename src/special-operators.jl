@@ -61,7 +61,7 @@ opEye(n::Int) = opEye(Float64, n)
 Rectangular identity operator of size `nrow`x`ncol` and of data type `T`
 (defaults to `Float64`).
 """
-function opEye(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+function opEye(Mv::AbstractVector{T}, nrow::I, ncol::I) where {T,I<:Integer}
   length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   if nrow == ncol
     return opEye(T, nrow)
@@ -70,8 +70,8 @@ function opEye(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
   return LinearOperator{T}(nrow, ncol, false, false, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
-opEye(T::DataType, nrow::Int, ncol::Int) =  opEye(zeros(T, nrow), nrow, ncol)
-opEye(nrow::Int, ncol::Int) = opEye(Float64, nrow, ncol)
+opEye(T::DataType, nrow::I, ncol::I) where {I<:Integer} =  opEye(zeros(T, nrow), nrow, ncol)
+opEye(nrow::I, ncol::I) where {I<:Integer} = opEye(Float64, nrow, ncol)
 
 function mulOpOnes!(res, v, α, β)
   res .= (α * sum(v)) .+ β .* res
@@ -85,14 +85,14 @@ end
 Operator of all ones of size `nrow`-by-`ncol` of data type `T` (defaults to
 `Float64`) and storage vector Mv.
 """
-function opOnes(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+function opOnes(Mv::AbstractVector{T}, nrow::I, ncol::I) where {T,I<:Integer}
   length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   prod! = @closure (res, v, α, β) -> mulOpOnes!(res, v, α, β)
   LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
-opOnes(T::DataType, nrow::Int, ncol::Int) = opOnes(zeros(T, nrow), nrow, ncol)
-opOnes(nrow::Int, ncol::Int) = opOnes(Float64, nrow, ncol)
+opOnes(T::DataType, nrow::I, ncol::I) where {I<:Integer} = opOnes(zeros(T, nrow), nrow, ncol)
+opOnes(nrow::I, ncol::I) where {I<:Integer} = opOnes(Float64, nrow, ncol)
 
 function mulOpZeros!(res, v, α, β)
   res .*= β 
@@ -106,14 +106,14 @@ end
 Zero operator of size `nrow`-by-`ncol`, of data type `T` (defaults to
 `Float64`) and storage vector Mv.
 """
-function opZeros(Mv::AbstractVector{T}, nrow::Int, ncol::Int) where T
+function opZeros(Mv::AbstractVector{T}, nrow::I, ncol::I) where {T,I<:Integer}
   length(Mv) == nrow || throw(LinearOperatorException("shape mismatch"))
   prod! = @closure (res, v, α, β) -> mulOpZeros!(res, v, α, β)
   LinearOperator{T}(nrow, ncol, nrow == ncol, nrow == ncol, prod!, prod!, prod!, Mv, Mv, Mv)
 end
 
-opZeros(T::DataType, nrow::Int, ncol::Int) = opZeros(zeros(T, nrow), nrow, ncol)
-opZeros(nrow::Int, ncol::Int) = opZeros(Float64, nrow, ncol)
+opZeros(T::DataType, nrow::I, ncol::I) where {I<:Integer} = opZeros(zeros(T, nrow), nrow, ncol)
+opZeros(nrow::I, ncol::I) where {I<:Integer} = opZeros(Float64, nrow, ncol)
 
 function mulSquareOpDiagonal!(res, d, v, α, β)
   res .= α .* d .* v .+ β .* res 
@@ -151,7 +151,7 @@ Rectangular diagonal operator of size `nrow`-by-`ncol` with the vector `d` on
 its main diagonal and storage vectors `Mv`, `Mtu`, `Maw`.
 """
 function opDiagonal(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, Maw::AbstractVector{T}, 
-                    nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
+                    nrow::I, ncol::I, d::AbstractVector{T}) where {T,I<:Integer}
   nrow == ncol <= length(d) && (return opDiagonal(d[1:nrow]))
   n_min = min(nrow, ncol)
   prod! = @closure (res, v, α, β) -> mulOpDiagonal!(res, d, v, α, β, n_min)
@@ -160,7 +160,7 @@ function opDiagonal(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, Maw::Abstract
   LinearOperator{T}(nrow, ncol, false, false, prod!, tprod!, ctprod!, Mv, Mtu, Maw)
 end
 
-function opDiagonal(nrow::Int, ncol::Int, d::AbstractVector{T}) where {T}
+function opDiagonal(nrow::I, ncol::I, d::AbstractVector{T}) where {T,I<:Integer}
   Mv = zeros(T, nrow)
   Mtu = zeros(T, ncol)
   Maw = isreal(d) ? Mtu : zeros(T, ncol) 
@@ -188,19 +188,19 @@ The operation `Z * v` is equivalent to `v[I]`. `I` can be `:`.
 
 Alias for `opRestriction([k], ncol)`.
 """
-function opRestriction(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, I::LinearOperatorIndexType, ncol::Int) where {T}
-  all(1 .≤ I .≤ ncol) || throw(LinearOperatorException("indices should be between 1 and $ncol"))
-  nrow = length(I)
-  prod! = @closure (res, v, α, β) -> mulRestrict!(res, I, v, α, β)
-  tprod! = @closure (res, u, α, β) -> multRestrict!(res, I, u, α, β)
-  return LinearOperator{Int}(nrow, ncol, false, false, prod!, tprod!, tprod!, Mv, Mtu, Mtu)
+function opRestriction(Mv::AbstractVector{T}, Mtu::AbstractVector{T}, Idx::LinearOperatorIndexType{I}, ncol::I) where {T,I<:Integer}
+  all(1 .≤ Idx .≤ ncol) || throw(LinearOperatorException("indices should be between 1 and $ncol"))
+  nrow = length(Idx)
+  prod! = @closure (res, v, α, β) -> mulRestrict!(res, Idx, v, α, β)
+  tprod! = @closure (res, u, α, β) -> multRestrict!(res, Idx, u, α, β)
+  return LinearOperator{I}(nrow, ncol, false, false, prod!, tprod!, tprod!, Mv, Mtu, Mtu)
 end
 
-opRestriction(I::LinearOperatorIndexType, ncol::Int) = opRestriction(zeros(length(I)), zeros(ncol), I, ncol)
+opRestriction(Idx::LinearOperatorIndexType{I}, ncol::I) where {I<:Integer} = opRestriction(zeros(length(Idx)), zeros(ncol), Idx, ncol)
 
-opRestriction(::Colon, ncol::Int) = opEye(Int, ncol)
+opRestriction(::Colon, ncol::I) where {I<:Integer} = opEye(I, ncol)
 
-opRestriction(k::Int, ncol::Int) = opRestriction([k], ncol)
+opRestriction(k::I, ncol::I) where {I<:Integer} = opRestriction([k], ncol)
 
 """
     Z = opExtension(I, ncol)
@@ -215,19 +215,19 @@ The operation `w = Z * v` is equivalent to `w = zeros(ncol); w[I] = v`.
 
 Alias for `opExtension([k], ncol)`.
 """
-opExtension(I::LinearOperatorIndexType, ncol::Int) = opRestriction(I, ncol)'
+opExtension(Idx::LinearOperatorIndexType{I}, ncol::I) where {I<:Integer} = opRestriction(Idx, ncol)'
 
-opExtension(::Colon, ncol::Int) = opEye(Int, ncol)
+opExtension(::Colon, ncol::I) where {I<:Integer} = opEye(I, ncol)
 
-opExtension(k::Int, ncol::Int) = opExtension([k], ncol)
+opExtension(k::I, ncol::I) where {I<:Integer} = opExtension([k], ncol)
 
 # indexing for linear operators
 import Base.getindex
 function getindex(
   op::AbstractLinearOperator,
-  rows::Union{LinearOperatorIndexType, Int, Colon},
-  cols::Union{LinearOperatorIndexType, Int, Colon},
-)
+  rows::Union{LinearOperatorIndexType{I}, I, Colon},
+  cols::Union{LinearOperatorIndexType{I}, I, Colon},
+) where {I<:Integer}
   R = opRestriction(rows, size(op, 1))
   E = opExtension(cols, size(op, 2))
   return R * op * E

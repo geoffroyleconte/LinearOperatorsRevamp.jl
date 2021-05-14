@@ -5,19 +5,19 @@ hcat(A::AbstractLinearOperator, B::AbstractMatrix) = hcat(A, LinearOperator(B))
 hcat(A::AbstractMatrix, B::AbstractLinearOperator) = hcat(LinearOperator(A), B)
 
 function hcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                    Ancol::Int, nV::Int, v::AbstractVector, α, β) where T
+                    Ancol::I, nV::I, v::AbstractVector, α, β) where {T,I<:Integer}
   mul!(res, A, view(v, 1:Ancol), α, β)
   mul!(res, B, view(v, (Ancol+1): nV), α, one(T))
 end
 
 function hcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                     Ancol::Int, nV::Int, u::AbstractVector, α, β) where T
+                     Ancol::I, nV::I, u::AbstractVector, α, β) where {T,I<:Integer}
   mul!(view(res, 1:Ancol), transpose(A), u, α, β)
   mul!(view(res, (Ancol+1): nV), transpose(B), u, α, β)
 end
 
 function hcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                      Ancol::Int, nV::Int, w::AbstractVector, α, β) where T
+                      Ancol::I, nV::I, w::AbstractVector, α, β) where {T,I<:Integer}
   mul!(view(res, 1:Ancol), adjoint(A), w, α, β)
   mul!(view(res, (Ancol+1): nV), adjoint(B), w, α, β)
 end
@@ -52,19 +52,19 @@ vcat(A::AbstractLinearOperator, B::AbstractMatrix) = vcat(A, LinearOperator(B))
 vcat(A::AbstractMatrix, B::AbstractLinearOperator) = vcat(LinearOperator(A), B)
 
 function vcat_prod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T},
-                    Anrow::Int, nV::Int, u::AbstractVector, α, β) where T
+                    Anrow::I, nV::I, u::AbstractVector, α, β) where {T,I<:Integer}
   mul!(view(res, 1:Anrow), A, u, α, β)
   mul!(view(res, (Anrow+1): nV), B, u, α, β)
 end
 
 function vcat_tprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                     Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
+                     Anrow::I, nV::I, v::AbstractVector, α, β) where {T,I<:Integer}
   mul!(res, transpose(A), view(v, 1:Anrow), α, β)
   mul!(res, transpose(B), view(v, (Anrow+1): nV), α, one(T))
 end
 
 function vcat_ctprod!(res::AbstractVector, A::AbstractLinearOperator{T}, B::AbstractLinearOperator{T}, 
-                     Anrow::Int, nV::Int, v::AbstractVector, α, β) where T
+                     Anrow::I, nV::I, v::AbstractVector, α, β) where {T,I<:Integer}
   mul!(res, adjoint(A), view(v, 1:Anrow), α, β)
   mul!(res, adjoint(B), view(v, (Anrow+1): nV), α, one(T))
 end
